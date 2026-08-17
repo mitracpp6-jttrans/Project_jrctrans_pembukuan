@@ -1,4 +1,4 @@
-const CACHE_NAME = 'jrctrans-cache-v1';
+const CACHE_NAME = 'jrctrans-cache-v2';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -13,7 +13,6 @@ const STATIC_ASSETS = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('[ServiceWorker] Pre-caching static assets');
       return cache.addAll(STATIC_ASSETS);
     }).then(() => self.skipWaiting())
   );
@@ -35,11 +34,11 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// 3. Fetch Event: Network-first for API, Cache-first / Stale-while-revalidate for static files
+// 3. Fetch Event: Network-First with Cache fallback
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // Jangan cache request API atau method non-GET (harus fresh dari server)
+  // Jangan cache API
   if (url.pathname.startsWith('/api/') || event.request.method !== 'GET') {
     event.respondWith(
       fetch(event.request).catch(() => {
@@ -51,20 +50,18 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Untuk file statis / halaman HTML (Stale-While-Revalidate)
+  // Network-First untuk semua halaman & file statis agar update selalu seketika
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      const fetchPromise = fetch(event.request).then((networkResponse) => {
-        if (networkResponse && networkResponse.status === 200) {
-          const responseClone = networkResponse.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseClone);
-          });
-        }
-        return networkResponse;
-      }).catch(() => cachedResponse);
-
-      return cachedResponse || fetchPromise;
+    fetch(event.request).then((networkResponse) => {
+      if (networkResponse && networkResponse.status === 200) {
+        const responseClone = networkResponse.clone();
+        caches.open(CACHE_NAME).then((cache) => {
+          cache.put(event.request, responseClone);
+        });
+      }
+      return networkResponse;
+    }).catch(() => {
+      return caches.match(event.request);
     })
   );
 });

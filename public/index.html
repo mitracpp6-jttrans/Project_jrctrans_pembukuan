@@ -1244,12 +1244,27 @@
     }
 
     async function simpanArmada(e) {
-      e.preventDefault();
+      if (e) e.preventDefault();
+      const namaEl = document.getElementById('add-nama-mobil') || document.getElementById('armada-nama') || {};
+      const platEl = document.getElementById('add-plat-nomor') || document.getElementById('armada-plat') || {};
+      const tahunEl = document.getElementById('add-tahun') || document.getElementById('armada-tahun') || {};
+      const kepEl = document.getElementById('add-kepemilikan') || document.getElementById('armada-kepemilikan') || {};
+
+      const namaVal = (namaEl.value || '').trim();
+      const platVal = (platEl.value || '').trim();
+      const tahunVal = parseInt(tahunEl.value) || 2025;
+      const kepVal = kepEl.value || 'Investor';
+
+      if (!namaVal || !platVal) {
+        alert('Nama mobil dan plat nomor wajib diisi!');
+        return;
+      }
+
       const body = {
-        nama_mobil: document.getElementById('add-nama-mobil').value,
-        plat_nomor: document.getElementById('add-plat-nomor').value,
-        tahun: document.getElementById('add-tahun').value,
-        kepemilikan: document.getElementById('add-kepemilikan').value
+        nama_mobil: namaVal,
+        plat_nomor: platVal,
+        tahun: tahunVal,
+        kepemilikan: kepVal
       };
 
       try {
@@ -1258,13 +1273,13 @@
           body: JSON.stringify(body)
         });
         closeModalArmada();
-        loadArmada();
-        loadDashboard();
+        await loadArmada();
+        await loadDashboard();
         populateReportMobilDropdown();
-        e.target.reset();
+        if (e && e.target && typeof e.target.reset === 'function') e.target.reset();
         alert('Armada mobil berhasil ditambahkan!');
       } catch (err) {
-        alert(err.message);
+        alert('Gagal menyimpan armada: ' + err.message);
       }
     }
 
