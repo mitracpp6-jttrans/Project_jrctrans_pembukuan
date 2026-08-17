@@ -1,0 +1,62 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "username": "admin",
+      "password": "admin123",
+      "role": "admin"
+    },
+    {
+      "id": 2,
+      "username": "investor",
+      "password": "investor123",
+      "role": "investor"
+    },
+    {
+      "id": 3,
+      "username": "investor_andi",
+      "password": "password123",
+      "role": "investor"
+    },
+    {
+      "id": 4,
+      "username": "supir",
+      "password": "supir123",
+      "role": "supir"
+    }
+  ],
+  "dataMobil": [
+    {
+      "id": 1,
+      "nama_mobil": "Innova Reborn",
+      "plat_nomor": "E 1995 VLS",
+      "tahun": 2021,
+      "kepemilikan": "investor",
+      "status_sewa": "Tersedia",
+      "tgl_kembali": "-"
+    },
+    {
+      "id": 2,
+      "nama_mobil": "Avanza Veloz",
+      "plat_nomor": "E 1234 ABC",
+      "tahun": 2022,
+      "kepemilikan": "sendiri",
+      "status_sewa": "Sewa",
+      "tgl_kembali": "-"
+    }
+  ],
+  "dataTransaksi": [
+    {
+      "id": 1,
+      "mobil_id": 2,
+      "tanggal": "2026-08-14",
+      "penyewa": "ciewonk",
+      "tarif": 1234,
+      "tarif_sewa": 1234,
+      "biaya_bbm": 123,
+      "biaya_servis": 1234,
+      "biaya_lainnya": 12,
+      "keterangan": "-"
+    }
+  ]
+}

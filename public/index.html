@@ -1,0 +1,1567 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>JRCTRANS Majalengka - Sistem Pembukuan Rental</title>
+  
+  <!-- PWA Web App Manifest & Apple iOS Meta Tags -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#0F4C25">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="JRCTRANS">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" href="/icon-192.png">
+
+  <!-- Tailwind CSS CDN & FontAwesome -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Chart.js & html2pdf.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'custom-green': '#0F4C25',
+            'custom-hover': '#0B3A1C'
+          }
+        }
+      }
+    }
+  </script>
+  
+  <style>
+    .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+    .card-float { transition: all 0.2s ease-in-out; }
+    .card-float:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.06); }
+  </style>
+</head>
+<body class="bg-gray-100 font-sans text-gray-800 antialiased min-h-screen">
+
+  <!-- ================= AUTH CONTAINER (LOGIN) ================= -->
+  <div id="auth-container" class="fixed inset-0 bg-custom-green flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full">
+      <div class="text-center mb-6">
+        <div class="w-16 h-16 bg-custom-green text-white rounded-2xl flex items-center justify-center font-black text-2xl mx-auto mb-3 shadow-lg">JRC</div>
+        <h1 class="text-3xl font-black text-custom-green tracking-tight">JRCTRANS</h1>
+        <p class="text-xs text-gray-500 font-bold uppercase tracking-widest mt-1">Rental Accounting - Majalengka</p>
+      </div>
+
+      <form id="form-login" onsubmit="handleLogin(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-gray-600 mb-1">Username</label>
+          <input type="text" id="login-username" required placeholder="Masukkan username" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-600 focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-600 mb-1">Password</label>
+          <input type="password" id="login-password" required placeholder="Masukkan password" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-green-600 focus:outline-none">
+        </div>
+        <button type="submit" class="w-full bg-custom-green text-white font-bold py-2.5 rounded-lg hover:bg-custom-hover transition duration-200 shadow-md">
+          <i class="fa-solid fa-right-to-bracket mr-2"></i> Masuk Aplikasi
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= APP CONTAINER (MAIN APP) ================= -->
+  <div id="app-container" class="hidden min-h-screen flex relative">
+    
+    <!-- MOBILE BACKDROP OVERLAY -->
+    <div id="sidebar-backdrop" onclick="toggleMobileSidebar()" class="fixed inset-0 bg-black/50 z-30 hidden md:hidden"></div>
+
+    <!-- SIDEBAR -->
+    <aside id="app-sidebar" class="fixed inset-y-0 left-0 z-40 transform -translate-x-full md:relative md:translate-x-0 transition-transform duration-300 w-64 bg-custom-green text-white flex flex-col justify-between p-4 flex-shrink-0 shadow-2xl md:shadow-none">
+      <div>
+        <!-- BRAND -->
+        <div class="flex items-center justify-between px-2 py-3 mb-6 border-b border-green-800/50">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center font-black text-custom-green text-xl shadow">JRC</div>
+            <div>
+              <h1 class="font-black text-lg leading-none tracking-wide">JRCTRANS</h1>
+              <p class="text-[10px] text-green-200 uppercase tracking-widest mt-0.5">Rental Accounting</p>
+            </div>
+          </div>
+          <button onclick="toggleMobileSidebar()" class="md:hidden text-white hover:text-red-300 p-1">
+            <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+        </div>
+
+        <!-- MENU NAVIGATION -->
+        <nav class="space-y-1">
+          <button onclick="switchTab('dashboard')" id="nav-dashboard" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-bold transition bg-white/10 text-white">
+            <i class="fa-solid fa-chart-pie w-5 text-center"></i> Dashboard
+          </button>
+          <button onclick="switchTab('armada')" id="nav-armada" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-bold transition text-green-200 hover:bg-white/5 hover:text-white">
+            <i class="fa-solid fa-car-side w-5 text-center"></i> Kelola Armada
+          </button>
+          <button onclick="switchTab('transaksi')" id="nav-transaksi" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-bold transition text-green-200 hover:bg-white/5 hover:text-white">
+            <i class="fa-solid fa-file-invoice-dollar w-5 text-center"></i> Input Transaksi
+          </button>
+          <button onclick="switchTab('report')" id="nav-report" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-bold transition text-green-200 hover:bg-white/5 hover:text-white">
+            <i class="fa-solid fa-file-pdf w-5 text-center"></i> Report Investor
+          </button>
+          <!-- MENU KHUSUS ADMIN (ALL REPORT) -->
+          <button onclick="switchTab('all-report')" id="nav-all-report" class="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-bold transition text-amber-300 hover:bg-white/5 hover:text-amber-200 border border-amber-500/30">
+            <span class="flex items-center gap-3"><i class="fa-solid fa-folder-tree w-5 text-center"></i> All Report (Admin)</span>
+            <i class="fa-solid fa-lock text-[10px]"></i>
+          </button>
+        </nav>
+      </div>
+
+      <!-- BOTTOM SIDEBAR LOGOUT -->
+      <div class="pt-4 border-t border-green-800/50">
+        <button onclick="logout()" class="w-full flex items-center justify-center gap-2 bg-red-600/80 hover:bg-red-600 text-white py-2 rounded-lg text-xs font-bold transition">
+          <i class="fa-solid fa-power-off"></i> Keluar
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="flex-1 flex flex-col h-screen overflow-y-auto">
+      
+      <!-- TOP NAVBAR -->
+      <header class="bg-white border-b border-gray-200 px-4 md:px-6 py-3 flex items-center justify-between sticky top-0 z-20 shadow-sm">
+        <div class="flex items-center gap-3">
+          <button onclick="toggleMobileSidebar()" class="md:hidden text-gray-700 hover:text-custom-green text-lg p-1.5 focus:outline-none rounded-lg hover:bg-gray-100" title="Buka Menu">
+            <i class="fa-solid fa-bars"></i>
+          </button>
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse"></span>
+            <span class="text-xs font-bold text-gray-600 uppercase tracking-wider hidden sm:inline">JRCTRANS Majalengka System</span>
+            <span class="text-xs font-bold text-gray-600 uppercase tracking-wider sm:hidden">JRCTRANS</span>
+          </div>
+        </div>
+
+        <!-- RIGHT HEADER: INSTALL PWA + PROFILE DROPDOWN -->
+        <div class="flex items-center gap-2">
+          <!-- Install PWA Button -->
+          <button id="btn-install-pwa" onclick="installPWA()" class="hidden items-center gap-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-xs transition animate-bounce">
+            <i class="fa-solid fa-download"></i> <span class="hidden sm:inline">Install App</span>
+          </button>
+
+          <!-- Profile Dropdown -->
+          <div class="relative">
+            <button onclick="toggleProfileMenu()" class="flex items-center gap-2 bg-gray-50 border border-gray-200 px-3 py-1.5 rounded-full hover:bg-gray-100 transition shadow-sm">
+              <span id="user-role-badge" class="bg-custom-green text-white text-[10px] font-black uppercase px-2 py-0.5 rounded-full">ADMIN</span>
+              <span id="user-display-name" class="text-xs font-bold text-gray-700">Admin</span>
+              <i class="fa-solid fa-chevron-down text-[10px] text-gray-400"></i>
+            </button>
+
+            <!-- Dropdown Menu -->
+            <div id="profile-menu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 py-1 z-30">
+              <a href="#" onclick="openCreateUserModal(); return false;" id="menu-create-user" class="px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 flex items-center gap-2">
+                <i class="fa-solid fa-user-plus text-green-700"></i> Buat User Baru
+              </a>
+              <hr class="my-1 border-gray-100">
+              <a href="#" onclick="logout(); return false;" class="px-4 py-2 text-xs text-red-600 hover:bg-red-50 flex items-center gap-2 font-bold">
+                <i class="fa-solid fa-right-from-bracket"></i> Keluar
+              </a>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- CONTENT BODY -->
+      <div class="p-4 md:p-6 space-y-4">
+        
+        <!-- ================= TAB 1: DASHBOARD ================= -->
+        <section id="tab-dashboard" class="tab-content space-y-4">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div>
+              <h2 class="text-xl font-black text-gray-800 tracking-tight">Ringkasan Performa & Analitik</h2>
+              <p class="text-xs text-gray-500">Pantau performa keuangan harian dan status armada secara real-time.</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <span id="dashboard-refresh-status" class="hidden text-[11px] font-bold text-green-600 bg-green-50 px-2 py-1 rounded-md">
+                <i class="fa-solid fa-circle-check"></i> Data Terkini
+              </span>
+              <button onclick="refreshDashboardClick()" id="btn-refresh-dashboard" class="px-3 py-1.5 rounded-lg bg-green-50 text-green-700 font-bold transition flex items-center gap-1.5 hover:bg-green-100 border border-green-200 text-xs shadow-xs">
+                <i id="icon-refresh" class="fa-solid fa-rotate-right"></i> Refresh Data
+              </button>
+            </div>
+          </div>
+
+          <!-- SUMMARY CARDS -->
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="bg-white p-4 rounded-xl border border-gray-100 card-float flex items-center justify-between shadow-sm">
+              <div>
+                <p class="text-gray-400 text-[10px] font-bold uppercase tracking-wider">Total Unit Armada</p>
+                <h3 id="card-total-unit" class="text-xl font-black text-gray-800 mt-0.5">0 Unit</h3>
+              </div>
+              <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-lg"><i class="fa-solid fa-car font-bold"></i></div>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-gray-100 card-float flex items-center justify-between shadow-sm">
+              <div>
+                <p class="text-gray-400 text-[10px] font-bold uppercase tracking-wider">Total Pendapatan</p>
+                <h3 id="card-pendapatan" class="text-lg font-extrabold text-green-700 mt-0.5">Rp 0</h3>
+              </div>
+              <div class="w-10 h-10 rounded-lg bg-green-50 text-green-600 flex items-center justify-center text-lg"><i class="fa-solid fa-wallet"></i></div>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-gray-100 card-float flex items-center justify-between shadow-sm">
+              <div>
+                <p class="text-gray-400 text-[10px] font-bold uppercase tracking-wider">Total Biaya Operasional</p>
+                <h3 id="card-biaya" class="text-lg font-extrabold text-red-600 mt-0.5">Rp 0</h3>
+              </div>
+              <div class="w-10 h-10 rounded-lg bg-red-50 text-red-600 flex items-center justify-center text-lg"><i class="fa-solid fa-receipt"></i></div>
+            </div>
+            <div class="bg-white p-4 rounded-xl border border-gray-100 card-float flex items-center justify-between shadow-sm">
+              <div>
+                <p class="text-gray-400 text-[10px] font-bold uppercase tracking-wider">Keuntungan Bersih</p>
+                <h3 id="card-keuntungan" class="text-lg font-extrabold text-indigo-700 mt-0.5">Rp 0</h3>
+              </div>
+              <div class="w-10 h-10 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center text-lg"><i class="fa-solid fa-chart-line"></i></div>
+            </div>
+          </div>
+
+          <!-- WIDGET REALTIME STATUS ARMADA -->
+          <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="text-xs font-black text-gray-800 uppercase tracking-wider flex items-center gap-2">
+                <i class="fa-solid fa-clock-rotate-left text-green-700"></i> Status & Pergerakan Unit Real-Time
+              </h3>
+              <span class="text-[10px] bg-green-100 text-green-700 px-2.5 py-0.5 rounded-full font-bold">● Live System</span>
+            </div>
+            <div id="status-armada-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3"></div>
+          </div>
+
+          <!-- CHARTS GRID -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+            <div class="lg:col-span-5 bg-white p-4 rounded-xl border border-gray-100 card-float flex flex-col justify-between shadow-sm">
+              <div class="flex items-center justify-between mb-2">
+                <h3 class="text-xs font-extrabold text-gray-800 flex items-center gap-1.5">
+                  <i class="fa-solid fa-chart-line text-green-700"></i> Tren Pendapatan & Biaya Harian
+                </h3>
+              </div>
+              <div class="h-52 w-full relative">
+                <canvas id="lineChartHarian"></canvas>
+              </div>
+            </div>
+            <div class="lg:col-span-4 bg-white p-4 rounded-xl border border-gray-100 card-float flex flex-col justify-between shadow-sm">
+              <div class="flex items-center justify-between mb-2">
+                <h3 class="text-xs font-extrabold text-gray-800 flex items-center gap-1.5">
+                  <i class="fa-solid fa-chart-bar text-green-700"></i> Pendapatan per Unit
+                </h3>
+              </div>
+              <div class="h-52 w-full relative">
+                <canvas id="barChart"></canvas>
+              </div>
+            </div>
+            <div class="lg:col-span-3 bg-white p-4 rounded-xl border border-gray-100 card-float flex flex-col justify-between items-center shadow-sm">
+              <div class="w-full text-left mb-2">
+                <h3 class="text-xs font-extrabold text-gray-800 flex items-center gap-1.5">
+                  <i class="fa-solid fa-chart-pie text-purple-700"></i> Bagi Hasil
+                </h3>
+              </div>
+              <div class="h-52 w-full flex items-center justify-center relative">
+                <canvas id="pieChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= TAB 2: KELOLA ARMADA ================= -->
+        <section id="tab-armada" class="tab-content hidden space-y-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-xl font-black text-gray-800">Manajemen Armada & Status Operasional</h2>
+              <p class="text-xs text-gray-500">Tambah armada baru dan ubah status sewa/servis secara langsung.</p>
+            </div>
+            <button onclick="openModalArmada()" id="btn-tambah-armada" class="bg-custom-green text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-custom-hover transition flex items-center gap-1.5 shadow-sm">
+              <i class="fa-solid fa-plus"></i> Tambah Armada
+            </button>
+          </div>
+
+          <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="bg-gray-50 border-b border-gray-200 text-gray-500 font-bold uppercase tracking-wider">
+                  <th class="p-3">Mobil & Plat</th>
+                  <th class="p-3">Tahun</th>
+                  <th class="p-3">Kepemilikan</th>
+                  <th class="p-3">Status Saat Ini</th>
+                  <th class="p-3">Estimasi Kembali/Selesai</th>
+                  <th class="p-3 text-center">Ubah Status Cepat</th>
+                  <th class="p-3 text-center">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="tabel-armada" class="divide-y divide-gray-100"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- ================= TAB 3: INPUT TRANSAKSI ================= -->
+        <section id="tab-transaksi" class="tab-content hidden space-y-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-xl font-black text-gray-800">Catatan Transaksi Operasional</h2>
+              <p class="text-xs text-gray-500">Input transaksi sewa, BBM, servis, dan pengeluaran armada.</p>
+            </div>
+            <button onclick="openModalTransaksi()" id="btn-tambah-transaksi" class="bg-custom-green text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-custom-hover transition flex items-center gap-1.5 shadow-sm">
+              <i class="fa-solid fa-plus"></i> Input Transaksi Baru
+            </button>
+          </div>
+
+          <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="bg-gray-50 border-b border-gray-200 text-gray-500 font-bold uppercase tracking-wider">
+                  <th class="p-3">Tanggal</th>
+                  <th class="p-3">Armada / Plat</th>
+                  <th class="p-3">Penyewa</th>
+                  <th class="p-3">Tarif (Sewa)</th>
+                  <th class="p-3">Total Biaya Operasional</th>
+                  <th class="p-3">Keterangan</th>
+                  <th class="p-3 text-center">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="tabel-transaksi" class="divide-y divide-gray-100"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- ================= TAB 4: REPORT INVESTOR ================= -->
+        <section id="tab-report" class="tab-content hidden space-y-4">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div>
+              <h2 class="text-xl font-black text-gray-800">Laporan Bagi Hasil Investor</h2>
+              <p class="text-xs text-gray-500">Laporan khusus unit mobil investor (Skema 70% Investor : 30% Pengelola).</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="downloadPDFReport()" class="bg-red-600 text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-red-700 transition flex items-center gap-2 shadow-sm">
+                <i class="fa-solid fa-file-pdf"></i> Download PDF
+              </button>
+            </div>
+          </div>
+
+          <!-- FILTER BAR LAPORAN -->
+          <div class="bg-white p-3 rounded-xl border border-gray-200 shadow-sm flex flex-wrap items-center gap-3">
+            <span class="text-xs font-bold text-gray-600"><i class="fa-solid fa-filter mr-1 text-custom-green"></i> Filter Periode:</span>
+            <select id="report-filter-type" onchange="onReportFilterChange()" class="border rounded-lg px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+              <option value="all">Semua Waktu (Realtime)</option>
+              <option value="hari_ini">Hari Ini</option>
+              <option value="7_hari">7 Hari Terakhir</option>
+              <option value="bulan_ini">Bulan Ini</option>
+              <option value="custom">Custom Tanggal</option>
+            </select>
+            <div id="custom-date-inputs" class="hidden flex items-center gap-2">
+              <input type="date" id="report-start" class="border rounded-lg px-2.5 py-1.5 text-xs focus:outline-none">
+              <span class="text-xs font-bold text-gray-500">s/d</span>
+              <input type="date" id="report-end" class="border rounded-lg px-2.5 py-1.5 text-xs focus:outline-none">
+              <button onclick="loadReport()" class="bg-custom-green text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-custom-hover">Terapkan</button>
+            </div>
+          </div>
+
+          <div id="pdf-container" class="bg-white p-8 rounded-xl border border-gray-200 shadow-sm space-y-6">
+            <div class="border-b-2 border-custom-green pb-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div class="flex items-center gap-3">
+                <div class="w-12 h-12 bg-custom-green text-white rounded-xl flex items-center justify-center font-black text-xl shadow-md">JRC</div>
+                <div>
+                  <h1 class="text-2xl font-black text-custom-green tracking-tight leading-none">JRCTRANS MAJALENGKA</h1>
+                  <p class="text-[11px] font-bold text-gray-700 mt-1 flex items-center gap-1">
+                    <i class="fa-solid fa-location-dot text-red-600"></i> Samping SPBU, Jl. Raya Cirebon - Bandung, Burujul Wetan, Kec. Jatiwangi, Kab. Majalengka, Jawa Barat 45454
+                  </p>
+                  <p class="text-[10px] text-gray-500 font-medium">Laporan Hasil Pengelolaan Armada & Pembagian Keuntungan Investor (Skema 70:30)</p>
+                </div>
+              </div>
+              <div class="text-right text-xs text-gray-500 space-y-1 bg-gray-50 p-2.5 rounded-lg border border-gray-200">
+                <p>Periode: <span id="report-period-label" class="font-bold text-gray-800">Semua Waktu</span></p>
+                <p>Tanggal Cetak: <span id="report-date-stamp" class="font-bold text-gray-800"></span></p>
+              </div>
+            </div>
+
+            <!-- Tabel Bagi Hasil PDF -->
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="bg-gray-100 text-gray-700 font-bold border-y border-gray-300">
+                  <th class="p-2.5">Armada</th>
+                  <th class="p-2.5">Kepemilikan</th>
+                  <th class="p-2.5 text-right">Pendapatan</th>
+                  <th class="p-2.5 text-right">Biaya Ops</th>
+                  <th class="p-2.5 text-right">Laba Bersih</th>
+                  <th class="p-2.5 text-right">Porsi Investor (70%)</th>
+                  <th class="p-2.5 text-right">Porsi Pengelola (30%)</th>
+                </tr>
+              </thead>
+              <tbody id="tabel-report-investor" class="divide-y divide-gray-200"></tbody>
+            </table>
+
+            <!-- Signature Footer Report Investor -->
+            <div class="pt-8 border-t border-gray-200 grid grid-cols-2 text-center text-xs text-gray-700">
+              <div>
+                <p class="font-semibold text-gray-500">Pihak Investor / Pemilik Unit,</p>
+                <div class="h-16"></div>
+                <p class="font-bold border-b border-gray-400 inline-block px-8 pb-1">( ......................................... )</p>
+              </div>
+              <div>
+                <p class="font-semibold text-gray-500">Pengelola JRCTRANS Majalengka,</p>
+                <div class="h-16"></div>
+                <p class="font-bold border-b border-gray-400 inline-block px-8 pb-1">( Manajemen JRCTRANS )</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= TAB 5: ALL REPORT (KHUSUS ADMIN) ================= -->
+        <section id="tab-all-report" class="tab-content hidden space-y-4">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+            <div>
+              <div class="flex items-center gap-2">
+                <h2 class="text-xl font-black text-gray-800">Laporan Keuangan Keseluruhan (All Report)</h2>
+                <span class="bg-amber-100 text-amber-800 text-[10px] font-black px-2 py-0.5 rounded-full border border-amber-300">ADMIN ONLY</span>
+              </div>
+              <p class="text-xs text-gray-500">Rekapitulasi total seluruh omset, pengeluaran, dan performa semua unit (JRCTRANS & Investor).</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="downloadPDFAllReport()" class="bg-red-600 text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-red-700 transition flex items-center gap-2 shadow-sm">
+                <i class="fa-solid fa-file-pdf"></i> Download PDF All Report
+              </button>
+            </div>
+          </div>
+
+          <!-- FILTER BAR ALL REPORT -->
+          <div class="bg-white p-3 rounded-xl border border-gray-200 shadow-sm flex flex-wrap items-center gap-3">
+            <span class="text-xs font-bold text-gray-600"><i class="fa-solid fa-filter mr-1 text-custom-green"></i> Filter Periode:</span>
+            <select id="allreport-filter-type" onchange="onAllReportFilterChange()" class="border rounded-lg px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+              <option value="all">Semua Waktu (Realtime)</option>
+              <option value="hari_ini">Hari Ini</option>
+              <option value="7_hari">7 Hari Terakhir</option>
+              <option value="bulan_ini">Bulan Ini</option>
+              <option value="custom">Custom Tanggal</option>
+            </select>
+            <div id="allreport-custom-date-inputs" class="hidden flex items-center gap-2">
+              <input type="date" id="allreport-start" class="border rounded-lg px-2.5 py-1.5 text-xs focus:outline-none">
+              <span class="text-xs font-bold text-gray-500">s/d</span>
+              <input type="date" id="allreport-end" class="border rounded-lg px-2.5 py-1.5 text-xs focus:outline-none">
+              <button onclick="loadAllReport()" class="bg-custom-green text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-custom-hover">Terapkan</button>
+            </div>
+          </div>
+
+          <!-- SUMMARY ALL REPORT -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+            <div class="bg-white p-3.5 rounded-xl border border-gray-200 shadow-xs">
+              <p class="text-gray-400 text-[10px] font-bold uppercase tracking-wider">Total Omset / Pendapatan</p>
+              <h4 id="allreport-summary-pendapatan" class="text-base font-black text-green-700 mt-0.5">Rp 0</h4>
+            </div>
+            <div class="bg-white p-3.5 rounded-xl border border-gray-200 shadow-xs">
+              <p class="text-gray-400 text-[10px] font-bold uppercase tracking-wider">Total Biaya Operasional</p>
+              <h4 id="allreport-summary-biaya" class="text-base font-black text-red-600 mt-0.5">Rp 0</h4>
+            </div>
+            <div class="bg-white p-3.5 rounded-xl border border-gray-200 shadow-xs">
+              <p class="text-gray-400 text-[10px] font-bold uppercase tracking-wider">Keuntungan Bersih Total</p>
+              <h4 id="allreport-summary-laba" class="text-base font-black text-indigo-700 mt-0.5">Rp 0</h4>
+            </div>
+            <div class="bg-white p-3.5 rounded-xl border border-gray-200 shadow-xs">
+              <p class="text-gray-400 text-[10px] font-bold uppercase tracking-wider">Hak Bersih JRCTRANS</p>
+              <h4 id="allreport-summary-pengelola" class="text-base font-black text-custom-green mt-0.5">Rp 0</h4>
+            </div>
+          </div>
+
+          <!-- PDF CONTAINER ALL REPORT -->
+          <div id="allreport-pdf-container" class="bg-white p-8 rounded-xl border border-gray-200 shadow-sm space-y-6">
+            <div class="border-b-2 border-custom-green pb-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div class="flex items-center gap-3">
+                <div class="w-12 h-12 bg-custom-green text-white rounded-xl flex items-center justify-center font-black text-xl shadow-md">JRC</div>
+                <div>
+                  <h1 class="text-2xl font-black text-custom-green tracking-tight leading-none">JRCTRANS MAJALENGKA</h1>
+                  <p class="text-[11px] font-bold text-gray-700 mt-1 flex items-center gap-1">
+                    <i class="fa-solid fa-location-dot text-red-600"></i> Samping SPBU, Jl. Raya Cirebon - Bandung, Burujul Wetan, Kec. Jatiwangi, Kab. Majalengka, Jawa Barat 45454
+                  </p>
+                  <p class="text-[10px] text-gray-500 font-medium">Laporan Keuangan & Rekapitulasi Operasional Seluruh Armada Rental</p>
+                </div>
+              </div>
+              <div class="text-right text-xs text-gray-500 space-y-1 bg-gray-50 p-2.5 rounded-lg border border-gray-200">
+                <p>Periode: <span id="allreport-period-label" class="font-bold text-gray-800">Semua Waktu</span></p>
+                <p>Tanggal Cetak: <span id="allreport-date-stamp" class="font-bold text-gray-800"></span></p>
+              </div>
+            </div>
+
+            <!-- Tabel Rekapitulasi Semua Armada -->
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="bg-gray-100 text-gray-700 font-bold border-y border-gray-300">
+                  <th class="p-2.5">Armada / Plat</th>
+                  <th class="p-2.5">Status Kepemilikan</th>
+                  <th class="p-2.5 text-center">Transaksi</th>
+                  <th class="p-2.5 text-right">Pendapatan</th>
+                  <th class="p-2.5 text-right">Biaya Ops</th>
+                  <th class="p-2.5 text-right">Laba Bersih</th>
+                  <th class="p-2.5 text-right">Porsi JRCTRANS</th>
+                  <th class="p-2.5 text-right">Porsi Investor</th>
+                </tr>
+              </thead>
+              <tbody id="tabel-all-report" class="divide-y divide-gray-200"></tbody>
+            </table>
+
+            <!-- Signature Footer All Report -->
+            <div class="pt-8 border-t border-gray-200 flex justify-end text-center text-xs text-gray-700">
+              <div class="w-64">
+                <p class="font-semibold text-gray-600">Manajemen JRCTRANS Majalengka,</p>
+                <div class="h-16"></div>
+                <p class="font-bold border-b border-gray-400 inline-block px-8 pb-1">( Direktur / Pengelola )</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- ================= MODAL TAMBAH MOBIL ================= -->
+  <div id="modal-armada" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-6 space-y-4">
+      <h3 class="text-lg font-black text-gray-800">Tambah Unit Armada Baru</h3>
+      <form onsubmit="simpanArmada(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-bold text-gray-600 mb-1">Nama Mobil</label>
+          <input type="text" id="add-nama-mobil" required placeholder="Contoh: Innova Reborn" class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-600 mb-1">Plat Nomor</label>
+          <input type="text" id="add-plat-nomor" required placeholder="Contoh: E 1234 XX" class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-bold text-gray-600 mb-1">Tahun</label>
+            <input type="number" id="add-tahun" required placeholder="2022" class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-600 mb-1">Kepemilikan</label>
+            <select id="add-kepemilikan" class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+              <option value="Investor">Investor (Bagi Hasil 70:30)</option>
+              <option value="JRCTRANS">JRCTRANS (Milik Sendiri)</option>
+            </select>
+          </div>
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeModalArmada()" class="px-4 py-2 border rounded-lg text-xs font-bold hover:bg-gray-50">Batal</button>
+          <button type="submit" class="px-4 py-2 bg-custom-green text-white rounded-lg text-xs font-bold hover:bg-custom-hover shadow-sm">Simpan Mobil</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= MODAL TAMBAH TRANSAKSI ================= -->
+  <div id="modal-transaksi" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-xl shadow-xl max-w-lg w-full p-6 space-y-4">
+      <h3 class="text-lg font-black text-gray-800">Input Transaksi Baru</h3>
+      <form onsubmit="simpanTransaksi(event)" class="space-y-3">
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-bold text-gray-600 mb-1">Pilih Armada</label>
+            <select id="trx-mobil-id" required class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none"></select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal</label>
+            <input type="date" id="trx-tanggal" required class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-600 mb-1">Nama Penyewa</label>
+          <input type="text" id="trx-penyewa" placeholder="Nama Penyewa" class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-bold text-gray-600 mb-1">Tarif Sewa (Rp)</label>
+            <input type="number" id="trx-tarif" placeholder="0" min="0" class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-600 mb-1">Biaya BBM (Rp)</label>
+            <input type="number" id="trx-bbm" placeholder="0" min="0" class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-bold text-gray-600 mb-1">Biaya Servis (Rp)</label>
+            <input type="number" id="trx-servis" placeholder="0" min="0" class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-600 mb-1">Biaya Lainnya (Rp)</label>
+            <input type="number" id="trx-lainnya" placeholder="0" min="0" class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-600 mb-1">Keterangan / Catatan</label>
+          <input type="text" id="trx-keterangan" placeholder="Catatan tambahan" class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeModalTransaksi()" class="px-4 py-2 border rounded-lg text-xs font-bold hover:bg-gray-50">Batal</button>
+          <button type="submit" class="px-4 py-2 bg-custom-green text-white rounded-lg text-xs font-bold hover:bg-custom-hover shadow-sm">Simpan Transaksi</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= MODAL EDIT TRANSAKSI ================= -->
+  <div id="modal-edit-transaksi" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-xl shadow-xl max-w-lg w-full p-6 space-y-4">
+      <h3 class="text-lg font-black text-gray-800">Edit Data Transaksi</h3>
+      <form onsubmit="simpanEditTransaksi(event)" class="space-y-3">
+        <input type="hidden" id="edit-trx-id">
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-bold text-gray-600 mb-1">Pilih Armada</label>
+            <select id="edit-trx-mobil-id" required class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none"></select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal</label>
+            <input type="date" id="edit-trx-tanggal" required class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-600 mb-1">Nama Penyewa</label>
+          <input type="text" id="edit-trx-penyewa" placeholder="Nama Penyewa" class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-bold text-gray-600 mb-1">Tarif Sewa (Rp)</label>
+            <input type="number" id="edit-trx-tarif" placeholder="0" min="0" class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-600 mb-1">Biaya BBM (Rp)</label>
+            <input type="number" id="edit-trx-bbm" placeholder="0" min="0" class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-bold text-gray-600 mb-1">Biaya Servis (Rp)</label>
+            <input type="number" id="edit-trx-servis" placeholder="0" min="0" class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-600 mb-1">Biaya Lainnya (Rp)</label>
+            <input type="number" id="edit-trx-lainnya" placeholder="0" min="0" class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-600 mb-1">Keterangan / Catatan</label>
+          <input type="text" id="edit-trx-keterangan" placeholder="Catatan tambahan" class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeModalEditTransaksi()" class="px-4 py-2 border rounded-lg text-xs font-bold hover:bg-gray-50">Batal</button>
+          <button type="submit" class="px-4 py-2 bg-custom-green text-white rounded-lg text-xs font-bold hover:bg-custom-hover shadow-sm">Simpan Perubahan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= MODAL BUAT USER BARU ================= -->
+  <div id="modal-create-user" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-6 space-y-4">
+      <h3 class="text-lg font-black text-gray-800 flex items-center gap-2">
+        <i class="fa-solid fa-user-plus text-custom-green"></i> Buat User Baru
+      </h3>
+      <form onsubmit="simpanUserBaru(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-bold text-gray-600 mb-1">Username</label>
+          <input type="text" id="user-username" required placeholder="Contoh: investor_andi" class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-600 mb-1">Password</label>
+          <input type="password" id="user-password" required placeholder="Masukkan password" class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-600 mb-1">Role / Peran</label>
+          <select id="user-role" class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+            <option value="supir">Supir / Driver (Hanya Dashboard)</option>
+            <option value="investor">Investor (Dashboard & Report Investor)</option>
+            <option value="admin">Admin (Akses Penuh)</option>
+          </select>
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeCreateUserModal()" class="px-4 py-2 border rounded-lg text-xs font-bold hover:bg-gray-50">Batal</button>
+          <button type="submit" class="px-4 py-2 bg-custom-green text-white rounded-lg text-xs font-bold hover:bg-custom-hover shadow-sm">Daftarkan User</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= SCRIPT LOGIK APLIKASI ================= -->
+  <script>
+    const BASE_URL = window.location.origin;
+    let lineChart, barChart, pieChart;
+    let cachedTransaksiList = [];
+
+    // Helper API Fetch
+    async function apiFetch(url, options = {}) {
+      const token = localStorage.getItem('token');
+      const headers = {
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+        ...options.headers
+      };
+
+      const res = await fetch(`${BASE_URL}${url}`, { ...options, headers });
+      if (res.status === 401 || res.status === 403) {
+        if (token && res.status === 401) logout();
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || 'Akses ditolak atau sesi telah berakhir');
+      }
+      return await res.json();
+    }
+
+    // Format Rupiah
+    function formatRp(v) {
+      return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(v || 0);
+    }
+
+    // Auth Handlers
+    async function handleLogin(e) {
+      e.preventDefault();
+      const username = document.getElementById('login-username').value;
+      const password = document.getElementById('login-password').value;
+
+      try {
+        const res = await fetch(`${BASE_URL}/api/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data.error || 'Gagal login');
+
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('role', data.role);
+        localStorage.setItem('username', data.username);
+
+        initApp();
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem('token');
+      localStorage.removeItem('role');
+      localStorage.removeItem('username');
+      document.getElementById('auth-container').classList.remove('hidden');
+      document.getElementById('app-container').classList.add('hidden');
+      const profileMenu = document.getElementById('profile-menu');
+      if (profileMenu) profileMenu.classList.add('hidden');
+    }
+
+    // Profile Menu Toggle
+    function toggleProfileMenu() {
+      const menu = document.getElementById('profile-menu');
+      if (menu) menu.classList.toggle('hidden');
+    }
+
+    // Modal Create User Handlers
+    function openCreateUserModal() {
+      const menu = document.getElementById('profile-menu');
+      if (menu) menu.classList.add('hidden');
+      const modal = document.getElementById('modal-create-user');
+      if (modal) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+      }
+    }
+
+    function closeCreateUserModal() {
+      const modal = document.getElementById('modal-create-user');
+      if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+      }
+    }
+
+    async function simpanUserBaru(e) {
+      e.preventDefault();
+      const body = {
+        username: document.getElementById('user-username').value,
+        password: document.getElementById('user-password').value,
+        role: document.getElementById('user-role').value
+      };
+
+      try {
+        await apiFetch('/api/users', {
+          method: 'POST',
+          body: JSON.stringify(body)
+        });
+        closeCreateUserModal();
+        e.target.reset();
+        alert('User baru berhasil didaftarkan!');
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    function initApp() {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const role = (localStorage.getItem('role') || 'admin').toLowerCase();
+      const username = localStorage.getItem('username') || 'User';
+
+      document.getElementById('auth-container').classList.add('hidden');
+      document.getElementById('app-container').classList.remove('hidden');
+
+      document.getElementById('user-display-name').innerText = username;
+      const roleBadge = document.getElementById('user-role-badge');
+      roleBadge.innerText = role.toUpperCase();
+
+      // Styling badge berdasarkan role
+      roleBadge.className = 'text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full text-white';
+      if (role === 'admin') {
+        roleBadge.classList.add('bg-custom-green');
+      } else if (role === 'investor') {
+        roleBadge.classList.add('bg-purple-600');
+      } else if (role === 'supir') {
+        roleBadge.classList.add('bg-blue-600');
+      }
+
+      // Atur Hak Akses Navigasi & Tombol Berdasarkan Role
+      const navDashboard = document.getElementById('nav-dashboard');
+      const navArmada = document.getElementById('nav-armada');
+      const navTransaksi = document.getElementById('nav-transaksi');
+      const navReport = document.getElementById('nav-report');
+      const navAllReport = document.getElementById('nav-all-report');
+      const btnTambahArmada = document.getElementById('btn-tambah-armada');
+      const btnTambahTransaksi = document.getElementById('btn-tambah-transaksi');
+      const menuCreateUser = document.getElementById('menu-create-user');
+
+      if (role === 'supir') {
+        // SUPIR: Hanya melihat Dashboard
+        if (navDashboard) navDashboard.classList.remove('hidden');
+        if (navArmada) navArmada.classList.add('hidden');
+        if (navTransaksi) navTransaksi.classList.add('hidden');
+        if (navReport) navReport.classList.add('hidden');
+        if (navAllReport) navAllReport.classList.add('hidden');
+        if (btnTambahArmada) btnTambahArmada.classList.add('hidden');
+        if (btnTambahTransaksi) btnTambahTransaksi.classList.add('hidden');
+        if (menuCreateUser) menuCreateUser.classList.add('hidden');
+        switchTab('dashboard');
+      } else if (role === 'investor') {
+        // INVESTOR: Hanya melihat Dashboard & Report Investor
+        if (navDashboard) navDashboard.classList.remove('hidden');
+        if (navArmada) navArmada.classList.add('hidden');
+        if (navTransaksi) navTransaksi.classList.add('hidden');
+        if (navReport) navReport.classList.remove('hidden');
+        if (navAllReport) navAllReport.classList.add('hidden');
+        if (btnTambahArmada) btnTambahArmada.classList.add('hidden');
+        if (btnTambahTransaksi) btnTambahTransaksi.classList.add('hidden');
+        if (menuCreateUser) menuCreateUser.classList.add('hidden');
+      } else {
+        // ADMIN: Akses Penuh ke Semua Menu & Fitur
+        if (navDashboard) navDashboard.classList.remove('hidden');
+        if (navArmada) navArmada.classList.remove('hidden');
+        if (navTransaksi) navTransaksi.classList.remove('hidden');
+        if (navReport) navReport.classList.remove('hidden');
+        if (navAllReport) navAllReport.classList.remove('hidden');
+        if (btnTambahArmada) btnTambahArmada.classList.remove('hidden');
+        if (btnTambahTransaksi) btnTambahTransaksi.classList.remove('hidden');
+        if (menuCreateUser) menuCreateUser.classList.remove('hidden');
+      }
+
+      loadDashboard();
+      document.getElementById('report-date-stamp').innerText = new Date().toLocaleDateString('id-ID');
+      const stampAll = document.getElementById('allreport-date-stamp');
+      if (stampAll) stampAll.innerText = new Date().toLocaleDateString('id-ID');
+      
+      const tglInput = document.getElementById('trx-tanggal');
+      if (tglInput) tglInput.valueAsDate = new Date();
+    }
+
+    // Mobile Sidebar Toggle
+    function toggleMobileSidebar() {
+      const sidebar = document.getElementById('app-sidebar');
+      const backdrop = document.getElementById('sidebar-backdrop');
+      if (sidebar) sidebar.classList.toggle('-translate-x-full');
+      if (backdrop) backdrop.classList.toggle('hidden');
+    }
+
+    // Switch Tabs Nav
+    function switchTab(tab) {
+      // Auto close mobile drawer on tab click
+      if (window.innerWidth < 768) {
+        const sidebar = document.getElementById('app-sidebar');
+        const backdrop = document.getElementById('sidebar-backdrop');
+        if (sidebar && !sidebar.classList.contains('-translate-x-full')) {
+          sidebar.classList.add('-translate-x-full');
+          if (backdrop) backdrop.classList.add('hidden');
+        }
+      }
+
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.getElementById(`tab-${tab}`).classList.remove('hidden');
+
+      document.querySelectorAll('nav button').forEach(b => {
+        b.classList.remove('bg-white/10', 'text-white');
+        if (b.id === 'nav-all-report') {
+          b.classList.add('text-amber-300');
+        } else {
+          b.classList.add('text-green-200');
+        }
+      });
+      document.getElementById(`nav-${tab}`).classList.add('bg-white/10', 'text-white');
+
+      if (tab === 'dashboard') loadDashboard();
+      if (tab === 'armada') loadArmada();
+      if (tab === 'transaksi') loadTransaksi();
+      if (tab === 'report') loadReport();
+      if (tab === 'all-report') loadAllReport();
+    }
+
+    // Refresh Dashboard Handler with visual animation
+    async function refreshDashboardClick() {
+      const icon = document.getElementById('icon-refresh');
+      const statusBadge = document.getElementById('dashboard-refresh-status');
+      
+      if (icon) icon.classList.add('fa-spin');
+      await loadDashboard();
+      if (icon) icon.classList.remove('fa-spin');
+
+      if (statusBadge) {
+        statusBadge.classList.remove('hidden');
+        setTimeout(() => statusBadge.classList.add('hidden'), 2500);
+      }
+    }
+
+    // Modal Control Armada
+    function openModalArmada() {
+      document.getElementById('modal-armada').classList.remove('hidden');
+      document.getElementById('modal-armada').classList.add('flex');
+    }
+    function closeModalArmada() {
+      document.getElementById('modal-armada').classList.add('hidden');
+      document.getElementById('modal-armada').classList.remove('flex');
+    }
+
+    // Modal Control Transaksi Tambah
+    async function openModalTransaksi() {
+      try {
+        const listMobil = await apiFetch('/api/mobil');
+        const select = document.getElementById('trx-mobil-id');
+        select.innerHTML = '<option value="">-- Pilih Armada --</option>';
+        listMobil.forEach(m => {
+          const isInv = (m.kepemilikan === 'investor' || m.kepemilikan === 'Investor');
+          const tag = isInv ? '[INVESTOR]' : '[MILIK JRCTRANS]';
+          select.innerHTML += `<option value="${m.id}">${m.nama_mobil} (${m.plat_nomor}) - ${tag}</option>`;
+        });
+      } catch (e) {
+        console.error(e);
+      }
+      document.getElementById('modal-transaksi').classList.remove('hidden');
+      document.getElementById('modal-transaksi').classList.add('flex');
+    }
+    function closeModalTransaksi() {
+      document.getElementById('modal-transaksi').classList.add('hidden');
+      document.getElementById('modal-transaksi').classList.remove('flex');
+    }
+
+    // Modal Control Transaksi Edit
+    async function openEditTransaksi(id) {
+      const tx = cachedTransaksiList.find(t => t.id === id);
+      if (!tx) return;
+
+      try {
+        const listMobil = await apiFetch('/api/mobil');
+        const select = document.getElementById('edit-trx-mobil-id');
+        select.innerHTML = '<option value="">-- Pilih Armada --</option>';
+        listMobil.forEach(m => {
+          const isInv = (m.kepemilikan === 'investor' || m.kepemilikan === 'Investor');
+          const tag = isInv ? '[INVESTOR]' : '[MILIK JRCTRANS]';
+          select.innerHTML += `<option value="${m.id}" ${m.id === tx.mobil_id ? 'selected' : ''}>${m.nama_mobil} (${m.plat_nomor}) - ${tag}</option>`;
+        });
+      } catch (e) {
+        console.error(e);
+      }
+
+      document.getElementById('edit-trx-id').value = tx.id;
+      document.getElementById('edit-trx-tanggal').value = tx.tanggal;
+      document.getElementById('edit-trx-penyewa').value = tx.penyewa;
+      document.getElementById('edit-trx-tarif').value = tx.tarif || tx.tarif_sewa || 0;
+      document.getElementById('edit-trx-bbm').value = tx.biaya_bbm || 0;
+      document.getElementById('edit-trx-servis').value = tx.biaya_servis || 0;
+      document.getElementById('edit-trx-lainnya').value = tx.biaya_lainnya || 0;
+      document.getElementById('edit-trx-keterangan').value = tx.keterangan || '';
+
+      document.getElementById('modal-edit-transaksi').classList.remove('hidden');
+      document.getElementById('modal-edit-transaksi').classList.add('flex');
+    }
+
+    function closeModalEditTransaksi() {
+      document.getElementById('modal-edit-transaksi').classList.add('hidden');
+      document.getElementById('modal-edit-transaksi').classList.remove('flex');
+    }
+
+    // Dashboard Loader
+    async function loadDashboard() {
+      try {
+        const data = await apiFetch('/api/laporan/dashboard');
+        const listMobil = await apiFetch('/api/mobil');
+
+        document.getElementById('card-total-unit').innerText = `${data.summary.total_mobil} Unit`;
+
+        let totalPendapatan = 0;
+        let totalBiaya = 0;
+
+        data.detail_unit.forEach(d => {
+          totalPendapatan += (d.total_pendapatan || 0);
+          totalBiaya += (d.total_biaya || 0);
+        });
+
+        const keuntungan = totalPendapatan - totalBiaya;
+        document.getElementById('card-pendapatan').innerText = formatRp(totalPendapatan);
+        document.getElementById('card-biaya').innerText = formatRp(totalBiaya);
+        document.getElementById('card-keuntungan').innerText = formatRp(keuntungan);
+
+        renderStatusArmadaWidget(listMobil);
+        renderCharts(data.detail_unit, totalPendapatan, totalBiaya, data.trend_harian);
+      } catch (e) {
+        console.error('Error loading dashboard:', e);
+      }
+    }
+
+    // Render Widget Real-Time Status Armada
+    function renderStatusArmadaWidget(dataMobil) {
+      const container = document.getElementById('status-armada-container');
+      container.innerHTML = '';
+
+      if (!dataMobil || dataMobil.length === 0) {
+        container.innerHTML = `<p class="text-xs text-gray-400 col-span-4">Belum ada data armada.</p>`;
+        return;
+      }
+
+      dataMobil.forEach(m => {
+        let statusBg = 'bg-green-50 border-green-200 text-green-700';
+        let statusBadge = 'bg-green-500';
+        let icon = 'fa-circle-check';
+
+        const st = (m.status_sewa || '').toLowerCase();
+        if (st === 'sewa' || st === 'disewa') {
+          statusBg = 'bg-amber-50 border-amber-200 text-amber-700';
+          statusBadge = 'bg-amber-500';
+          icon = 'fa-car-side';
+        } else if (st === 'maintenance' || st === 'servis') {
+          statusBg = 'bg-red-50 border-red-200 text-red-700';
+          statusBadge = 'bg-red-500';
+          icon = 'fa-wrench';
+        }
+
+        container.innerHTML += `
+          <div class="p-3 rounded-lg border ${statusBg} flex items-center justify-between">
+            <div>
+              <p class="font-bold text-gray-800 text-xs">${m.nama_mobil}</p>
+              <p class="text-[10px] text-gray-500 font-mono">${m.plat_nomor}</p>
+              ${m.tgl_kembali && m.tgl_kembali !== '-' ? `<p class="text-[9px] mt-1 text-gray-600">Selesai: <b>${m.tgl_kembali}</b></p>` : ''}
+            </div>
+            <div class="text-right">
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold text-white ${statusBadge}">
+                <i class="fa-solid ${icon}"></i> ${m.status_sewa || 'Tersedia'}
+              </span>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    // Render Chart.js
+    function renderCharts(details, totPendapatan, totBiaya, trendHarian) {
+      const labelsBar = details.map(d => d.nama_mobil);
+      const dataPendapatanBar = details.map(d => d.total_pendapatan);
+
+      // Line Chart Real Harian
+      const lineLabels = (trendHarian && trendHarian.labels) || ['Hari Ini'];
+      const linePend = (trendHarian && trendHarian.pendapatan) || [totPendapatan];
+      const lineBiaya = (trendHarian && trendHarian.biaya) || [totBiaya];
+
+      if (lineChart) lineChart.destroy();
+      const ctxLine = document.getElementById('lineChartHarian');
+      if (ctxLine) {
+        lineChart = new Chart(ctxLine, {
+          type: 'line',
+          data: {
+            labels: lineLabels,
+            datasets: [
+              { label: 'Pendapatan', data: linePend, borderColor: '#0F4C25', backgroundColor: 'rgba(15,76,37,0.1)', tension: 0.3, fill: true },
+              { label: 'Biaya Ops', data: lineBiaya, borderColor: '#DC2626', backgroundColor: 'rgba(220,38,38,0.1)', tension: 0.3, fill: true }
+            ]
+          },
+          options: { responsive: true, maintainAspectRatio: false }
+        });
+      }
+
+      // Bar Chart Pendapatan per Unit
+      if (barChart) barChart.destroy();
+      const ctxBar = document.getElementById('barChart');
+      if (ctxBar) {
+        barChart = new Chart(ctxBar, {
+          type: 'bar',
+          data: {
+            labels: labelsBar,
+            datasets: [{ label: 'Pendapatan (Rp)', data: dataPendapatanBar, backgroundColor: '#0F4C25', borderRadius: 4 }]
+          },
+          options: { responsive: true, maintainAspectRatio: false }
+        });
+      }
+
+      // Pie Chart Bagi Hasil
+      const laba = totPendapatan - totBiaya;
+      const porsiInv = laba > 0 ? laba * 0.7 : 0;
+      const porsiPeng = laba > 0 ? laba * 0.3 : 0;
+
+      if (pieChart) pieChart.destroy();
+      const ctxPie = document.getElementById('pieChart');
+      if (ctxPie) {
+        pieChart = new Chart(ctxPie, {
+          type: 'pie',
+          data: {
+            labels: ['Investor (70%)', 'Pengelola (30%)'],
+            datasets: [{ data: [porsiInv, porsiPeng], backgroundColor: ['#7C3AED', '#2563EB'] }]
+          },
+          options: { responsive: true, maintainAspectRatio: false }
+        });
+      }
+    }
+
+    // Load & Manage Armada
+    async function loadArmada() {
+      try {
+        const list = await apiFetch('/api/mobil');
+        const tbody = document.getElementById('tabel-armada');
+        const role = localStorage.getItem('role');
+        tbody.innerHTML = '';
+
+        if (!list || list.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-gray-400">Belum ada data armada.</td></tr>`;
+          return;
+        }
+
+        list.forEach(m => {
+          const st = (m.status_sewa || '').toLowerCase();
+          let badgeClass = 'bg-green-100 text-green-700';
+          if (st === 'sewa' || st === 'disewa') badgeClass = 'bg-amber-100 text-amber-700';
+          if (st === 'maintenance' || st === 'servis') badgeClass = 'bg-red-100 text-red-700';
+
+          tbody.innerHTML += `
+            <tr class="hover:bg-gray-50 border-b border-gray-100">
+              <td class="p-3">
+                <span class="font-bold text-gray-800">${m.nama_mobil}</span><br>
+                <span class="text-gray-500 font-mono text-[10px]">${m.plat_nomor}</span>
+              </td>
+              <td class="p-3">${m.tahun}</td>
+              <td class="p-3">
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold ${m.kepemilikan === 'investor' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}">
+                  ${m.kepemilikan === 'investor' ? 'Investor' : 'JRCTRANS'}
+                </span>
+              </td>
+              <td class="p-3">
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${badgeClass}">
+                  ${m.status_sewa || 'Tersedia'}
+                </span>
+              </td>
+              <td class="p-3">${m.tgl_kembali || '-'}</td>
+              <td class="p-3 text-center space-x-1">
+                ${role !== 'investor' ? `
+                  <button onclick="updateStatusMobil(${m.id}, 'Tersedia')" class="bg-green-600 text-white px-2 py-1 rounded text-[10px] hover:bg-green-700 shadow-xs">Tersedia</button>
+                  <button onclick="updateStatusMobil(${m.id}, 'Sewa')" class="bg-amber-500 text-white px-2 py-1 rounded text-[10px] hover:bg-amber-600 shadow-xs">Disewa</button>
+                  <button onclick="updateStatusMobil(${m.id}, 'Maintenance')" class="bg-red-600 text-white px-2 py-1 rounded text-[10px] hover:bg-red-700 shadow-xs">Servis</button>
+                ` : '-'}
+              </td>
+              <td class="p-3 text-center">
+                ${role !== 'investor' ? `<button onclick="deleteMobil(${m.id})" class="text-red-600 hover:text-red-800 px-2 py-1" title="Hapus Armada"><i class="fa-solid fa-trash"></i></button>` : '-'}
+              </td>
+            </tr>
+          `;
+        });
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    async function simpanArmada(e) {
+      e.preventDefault();
+      const body = {
+        nama_mobil: document.getElementById('add-nama-mobil').value,
+        plat_nomor: document.getElementById('add-plat-nomor').value,
+        tahun: document.getElementById('add-tahun').value,
+        kepemilikan: document.getElementById('add-kepemilikan').value,
+        status_sewa: 'Tersedia'
+      };
+
+      try {
+        await apiFetch('/api/mobil', {
+          method: 'POST',
+          body: JSON.stringify(body)
+        });
+        closeModalArmada();
+        loadArmada();
+        loadDashboard();
+        e.target.reset();
+        alert('Armada berhasil ditambahkan!');
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    async function updateStatusMobil(id, status_sewa) {
+      let tgl_kembali = '-';
+      if (status_sewa === 'Sewa') {
+        const inputTgl = prompt('Masukkan estimasi tanggal kembali (YYYY-MM-DD) atau kosongkan:');
+        if (inputTgl) tgl_kembali = inputTgl;
+      }
+
+      try {
+        await apiFetch(`/api/mobil/${id}/status`, {
+          method: 'PUT',
+          body: JSON.stringify({ status_sewa, tgl_kembali })
+        });
+        loadArmada();
+        loadDashboard();
+      } catch (e) {
+        alert('Gagal mengubah status armada');
+      }
+    }
+
+    async function deleteMobil(id) {
+      if (!confirm('Yakin ingin menghapus armada ini?')) return;
+      try {
+        await apiFetch(`/api/mobil/${id}`, { method: 'DELETE' });
+        loadArmada();
+        loadDashboard();
+        alert('Armada berhasil dihapus!');
+      } catch (e) {
+        alert('Gagal menghapus armada');
+      }
+    }
+
+    // Load & Manage Transaksi
+    async function loadTransaksi() {
+      try {
+        const list = await apiFetch('/api/transaksi');
+        cachedTransaksiList = list || [];
+        const tbody = document.getElementById('tabel-transaksi');
+        const role = localStorage.getItem('role');
+        tbody.innerHTML = '';
+
+        if (!list || list.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-gray-400">Belum ada data transaksi.</td></tr>`;
+          return;
+        }
+
+        list.forEach(t => {
+          const tarifVal = Number(t.tarif_sewa || t.tarif || 0);
+          const totalOps = (Number(t.biaya_bbm) || 0) + (Number(t.biaya_servis) || 0) + (Number(t.biaya_lainnya) || 0);
+
+          tbody.innerHTML += `
+            <tr class="hover:bg-gray-50 border-b border-gray-100">
+              <td class="p-3">${t.tanggal}</td>
+              <td class="p-3">
+                <span class="font-bold text-gray-800">${t.nama_mobil || '-'}</span><br>
+                <span class="text-gray-500 font-mono text-[10px]">${t.plat_nomor || '-'}</span>
+              </td>
+              <td class="p-3">${t.penyewa || '-'}</td>
+              <td class="p-3 font-semibold text-green-700">${formatRp(tarifVal)}</td>
+              <td class="p-3 font-semibold text-red-600">${formatRp(totalOps)}</td>
+              <td class="p-3">${t.keterangan || '-'}</td>
+              <td class="p-3 text-center space-x-1">
+                ${role !== 'investor' ? `
+                  <button onclick="openEditTransaksi(${t.id})" class="text-blue-600 hover:text-blue-800 px-2 py-1" title="Edit Transaksi"><i class="fa-solid fa-pen-to-square"></i></button>
+                  <button onclick="deleteTransaksi(${t.id})" class="text-red-600 hover:text-red-800 px-2 py-1" title="Hapus Transaksi"><i class="fa-solid fa-trash"></i></button>
+                ` : '-'}
+              </td>
+            </tr>
+          `;
+        });
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    async function simpanTransaksi(e) {
+      e.preventDefault();
+      const body = {
+        mobil_id: document.getElementById('trx-mobil-id').value,
+        tanggal: document.getElementById('trx-tanggal').value,
+        penyewa: document.getElementById('trx-penyewa').value,
+        tarif_sewa: Number(document.getElementById('trx-tarif').value) || 0,
+        biaya_bbm: Number(document.getElementById('trx-bbm').value) || 0,
+        biaya_servis: Number(document.getElementById('trx-servis').value) || 0,
+        biaya_lainnya: Number(document.getElementById('trx-lainnya').value) || 0,
+        keterangan: document.getElementById('trx-keterangan').value
+      };
+
+      try {
+        await apiFetch('/api/transaksi', {
+          method: 'POST',
+          body: JSON.stringify(body)
+        });
+        closeModalTransaksi();
+        loadTransaksi();
+        loadDashboard();
+        loadReport();
+        loadAllReport();
+        e.target.reset();
+        document.getElementById('trx-tanggal').valueAsDate = new Date();
+        alert('Transaksi berhasil disimpan & data dashboard diperbarui secara real-time!');
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    async function simpanEditTransaksi(e) {
+      e.preventDefault();
+      const id = document.getElementById('edit-trx-id').value;
+      const body = {
+        mobil_id: document.getElementById('edit-trx-mobil-id').value,
+        tanggal: document.getElementById('edit-trx-tanggal').value,
+        penyewa: document.getElementById('edit-trx-penyewa').value,
+        tarif_sewa: Number(document.getElementById('edit-trx-tarif').value) || 0,
+        biaya_bbm: Number(document.getElementById('edit-trx-bbm').value) || 0,
+        biaya_servis: Number(document.getElementById('edit-trx-servis').value) || 0,
+        biaya_lainnya: Number(document.getElementById('edit-trx-lainnya').value) || 0,
+        keterangan: document.getElementById('edit-trx-keterangan').value
+      };
+
+      try {
+        await apiFetch(`/api/transaksi/${id}`, {
+          method: 'PUT',
+          body: JSON.stringify(body)
+        });
+        closeModalEditTransaksi();
+        loadTransaksi();
+        loadDashboard();
+        loadReport();
+        loadAllReport();
+        alert('Transaksi berhasil diperbarui!');
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    async function deleteTransaksi(id) {
+      if (!confirm('Yakin ingin menghapus transaksi ini?')) return;
+      try {
+        await apiFetch(`/api/transaksi/${id}`, { method: 'DELETE' });
+        loadTransaksi();
+        loadDashboard();
+        loadReport();
+        loadAllReport();
+        alert('Transaksi berhasil dihapus!');
+      } catch (e) {
+        alert('Gagal menghapus transaksi');
+      }
+    }
+
+    // ==========================================
+    // REPORT INVESTOR HANDLERS
+    // ==========================================
+    function onReportFilterChange() {
+      const type = document.getElementById('report-filter-type').value;
+      const customDiv = document.getElementById('custom-date-inputs');
+      if (type === 'custom') {
+        customDiv.classList.remove('hidden');
+      } else {
+        customDiv.classList.add('hidden');
+        loadReport();
+      }
+    }
+
+    async function loadReport() {
+      const filterType = document.getElementById('report-filter-type').value;
+      let query = `?filter=${filterType}`;
+      let labelPeriod = 'Semua Waktu';
+
+      if (filterType === 'hari_ini') labelPeriod = 'Hari Ini';
+      if (filterType === '7_hari') labelPeriod = '7 Hari Terakhir';
+      if (filterType === 'bulan_ini') labelPeriod = 'Bulan Ini';
+      if (filterType === 'custom') {
+        const start = document.getElementById('report-start').value;
+        const end = document.getElementById('report-end').value;
+        if (!start || !end) return;
+        query += `&start=${start}&end=${end}`;
+        labelPeriod = `${start} s/d ${end}`;
+      }
+
+      document.getElementById('report-period-label').innerText = labelPeriod;
+
+      try {
+        const data = await apiFetch(`/api/laporan/investor${query}`);
+        const tbody = document.getElementById('tabel-report-investor');
+        tbody.innerHTML = '';
+
+        const list = Array.isArray(data) ? data : (data.detail_unit || []);
+
+        if (!list || list.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-gray-400 font-medium"><i class="fa-solid fa-inbox text-2xl mb-2 block"></i> Tidak ada transaksi armada investor untuk periode ini.</td></tr>`;
+          return;
+        }
+
+        list.forEach(d => {
+          const totPend = Number(d.total_pendapatan) || 0;
+          const totBiaya = Number(d.total_biaya) || 0;
+          const laba = Number(d.laba_bersih !== undefined ? d.laba_bersih : (totPend - totBiaya));
+          const porsiInv = Number(d.hak_investor_70 !== undefined ? d.hak_investor_70 : (laba > 0 ? laba * 0.7 : 0));
+          const porsiPeng = Number(d.porsi_pengelola_30 !== undefined ? d.porsi_pengelola_30 : (laba > 0 ? laba * 0.3 : laba));
+
+          tbody.innerHTML += `
+            <tr class="hover:bg-gray-50 border-b border-gray-100">
+              <td class="p-2.5 font-bold text-gray-800">${d.nama_mobil} <br><span class="text-[10px] text-gray-500 font-mono">${d.plat_nomor}</span></td>
+              <td class="p-2.5">
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-700">Investor</span>
+              </td>
+              <td class="p-2.5 text-right font-semibold text-green-700">${formatRp(totPend)}</td>
+              <td class="p-2.5 text-right font-semibold text-red-600">${formatRp(totBiaya)}</td>
+              <td class="p-2.5 text-right font-semibold text-indigo-700">${formatRp(laba)}</td>
+              <td class="p-2.5 text-right font-bold text-purple-700">${formatRp(porsiInv)}</td>
+              <td class="p-2.5 text-right font-bold text-blue-700">${formatRp(porsiPeng)}</td>
+            </tr>
+          `;
+        });
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function downloadPDFReport() {
+      const element = document.getElementById('pdf-container');
+      const opt = {
+        margin:       0.5,
+        filename:     `Laporan_Investor_JRCTRANS_${new Date().toISOString().split('T')[0]}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true },
+        jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' }
+      };
+      html2pdf().from(element).set(opt).save();
+    }
+
+    // ==========================================
+    // ALL REPORT (KHUSUS ADMIN) HANDLERS
+    // ==========================================
+    function onAllReportFilterChange() {
+      const type = document.getElementById('allreport-filter-type').value;
+      const customDiv = document.getElementById('allreport-custom-date-inputs');
+      if (type === 'custom') {
+        customDiv.classList.remove('hidden');
+      } else {
+        customDiv.classList.add('hidden');
+        loadAllReport();
+      }
+    }
+
+    async function loadAllReport() {
+      const role = localStorage.getItem('role');
+      if (role === 'investor') return;
+
+      const filterType = document.getElementById('allreport-filter-type').value;
+      let query = `?filter=${filterType}`;
+      let labelPeriod = 'Semua Waktu';
+
+      if (filterType === 'hari_ini') labelPeriod = 'Hari Ini';
+      if (filterType === '7_hari') labelPeriod = '7 Hari Terakhir';
+      if (filterType === 'bulan_ini') labelPeriod = 'Bulan Ini';
+      if (filterType === 'custom') {
+        const start = document.getElementById('allreport-start').value;
+        const end = document.getElementById('allreport-end').value;
+        if (!start || !end) return;
+        query += `&start=${start}&end=${end}`;
+        labelPeriod = `${start} s/d ${end}`;
+      }
+
+      document.getElementById('allreport-period-label').innerText = labelPeriod;
+
+      try {
+        const data = await apiFetch(`/api/laporan/keseluruhan${query}`);
+        const tbody = document.getElementById('tabel-all-report');
+        tbody.innerHTML = '';
+
+        document.getElementById('allreport-summary-pendapatan').innerText = formatRp(data.summary?.total_pendapatan || 0);
+        document.getElementById('allreport-summary-biaya').innerText = formatRp(data.summary?.total_biaya || 0);
+        document.getElementById('allreport-summary-laba').innerText = formatRp(data.summary?.total_laba_bersih || 0);
+        document.getElementById('allreport-summary-pengelola').innerText = formatRp(data.summary?.total_porsi_pengelola || 0);
+
+        const list = data.detail_unit || [];
+
+        if (list.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-gray-400 font-medium"><i class="fa-solid fa-inbox text-2xl mb-2 block"></i> Tidak ada data transaksi armada pada periode ini.</td></tr>`;
+          return;
+        }
+
+        list.forEach(d => {
+          tbody.innerHTML += `
+            <tr class="hover:bg-gray-50 border-b border-gray-100">
+              <td class="p-2.5 font-bold text-gray-800">${d.nama_mobil} <br><span class="text-[10px] text-gray-500 font-mono">${d.plat_nomor}</span></td>
+              <td class="p-2.5">
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold ${d.is_investor ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}">
+                  ${d.kepemilikan}
+                </span>
+              </td>
+              <td class="p-2.5 text-center font-bold text-gray-600">${d.total_transaksi}x</td>
+              <td class="p-2.5 text-right font-semibold text-green-700">${formatRp(d.total_pendapatan)}</td>
+              <td class="p-2.5 text-right font-semibold text-red-600">${formatRp(d.total_biaya)}</td>
+              <td class="p-2.5 text-right font-semibold text-indigo-700">${formatRp(d.laba_bersih)}</td>
+              <td class="p-2.5 text-right font-bold text-custom-green">${formatRp(d.porsi_pengelola)}</td>
+              <td class="p-2.5 text-right font-bold text-purple-700">${formatRp(d.porsi_investor)}</td>
+            </tr>
+          `;
+        });
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function downloadPDFAllReport() {
+      const element = document.getElementById('allreport-pdf-container');
+      const opt = {
+        margin:       0.5,
+        filename:     `Laporan_Keseluruhan_JRCTRANS_${new Date().toISOString().split('T')[0]}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true },
+        jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' }
+      };
+      html2pdf().from(element).set(opt).save();
+    }
+
+    // PWA Service Worker Registration
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then(reg => console.log('PWA ServiceWorker ready:', reg.scope))
+          .catch(err => console.error('PWA ServiceWorker registration failed:', err));
+      });
+    }
+
+    // PWA Install Prompt Listener (Android & Chrome Desktop)
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      const btnInstall = document.getElementById('btn-install-pwa');
+      if (btnInstall) {
+        btnInstall.classList.remove('hidden');
+        btnInstall.classList.add('flex');
+      }
+    });
+
+    async function installPWA() {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      console.log('Install prompt result:', outcome);
+      deferredPrompt = null;
+      const btnInstall = document.getElementById('btn-install-pwa');
+      if (btnInstall) {
+        btnInstall.classList.add('hidden');
+        btnInstall.classList.remove('flex');
+      }
+    }
+
+    // Auto Init on Startup
+    window.onload = function() {
+      const token = localStorage.getItem('token');
+      if (token) {
+        initApp();
+      } else {
+        logout();
+      }
+    };
+  </script>
+</body>
+</html>
