@@ -499,6 +499,7 @@
                 </tr>
               </thead>
               <tbody id="tabel-all-report" class="divide-y divide-gray-200"></tbody>
+              <tfoot id="tfoot-all-report"></tfoot>
             </table>
 
             <!-- Signature Footer All Report -->
@@ -1646,9 +1647,11 @@
         document.getElementById('allreport-summary-pengelola').innerText = formatRp(data.summary?.total_porsi_pengelola || 0);
 
         const list = data.detail_unit || [];
+        const tfoot = document.getElementById('tfoot-all-report');
 
         if (list.length === 0) {
           tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-gray-400 font-medium"><i class="fa-solid fa-inbox text-2xl mb-2 block"></i> Tidak ada data transaksi armada pada periode ini.</td></tr>`;
+          if (tfoot) tfoot.innerHTML = '';
           return;
         }
 
@@ -1670,6 +1673,42 @@
             </tr>
           `;
         });
+
+        // RENDER BARIS JUMLAH TOTAL (FOOTER)
+        if (tfoot) {
+          const summary = data.summary || {};
+          tfoot.innerHTML = `
+            <tr class="bg-gray-100/95 text-gray-900 border-t-2 border-gray-400 text-xs">
+              <td class="p-3 font-black text-gray-900">
+                JUMLAH TOTAL
+                <br><span class="text-[10px] text-gray-500 font-bold">${list.length} Unit Armada Aktif</span>
+              </td>
+              <td class="p-3 text-center text-gray-400 font-normal">—</td>
+              <td class="p-3 text-center font-black text-gray-800 text-sm">
+                ${summary.total_transaksi || 0}x
+                <br><span class="text-[9px] text-gray-500 font-normal">Perjalanan</span>
+              </td>
+              <td class="p-3 text-right font-black text-green-800 text-sm">
+                ${formatRp(summary.total_pendapatan || 0)}
+              </td>
+              <td class="p-3 text-right font-black text-red-700 text-sm">
+                ${formatRp(summary.total_biaya || 0)}
+                <br><span class="text-[9px] text-gray-500 font-normal">BBM: ${formatRp(summary.total_bbm || 0)} | Servis: ${formatRp(summary.total_servis || 0)}</span>
+              </td>
+              <td class="p-3 text-right font-black text-indigo-800 text-sm">
+                ${formatRp(summary.total_laba_bersih || 0)}
+              </td>
+              <td class="p-3 text-right font-black text-custom-green text-sm bg-green-50/70 border-x border-green-200">
+                ${formatRp(summary.total_porsi_pengelola || 0)}
+                <br><span class="text-[9px] text-custom-green font-normal">Kas Bersih JRCTRANS</span>
+              </td>
+              <td class="p-3 text-right font-black text-purple-900 text-sm bg-purple-50/70">
+                ${formatRp(summary.total_porsi_investor || 0)}
+                <br><span class="text-[9px] text-purple-700 font-normal">Hak Semua Investor</span>
+              </td>
+            </tr>
+          `;
+        }
       } catch (e) {
         console.error(e);
       }
