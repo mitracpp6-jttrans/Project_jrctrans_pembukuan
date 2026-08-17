@@ -369,6 +369,20 @@
       "biaya_servis": 0,
       "biaya_lainnya": 0,
       "keterangan": "Antar Jemput Tamu Pabrik"
+    },
+    {
+      "id": 21,
+      "mobil_id": 1,
+      "tanggal": "2026-08-17",
+      "tgl_mulai": "2026-08-17",
+      "tgl_kembali": "2026-08-19",
+      "penyewa": "Uji Coba Rental Aktif Hari Ini",
+      "tarif": 500000,
+      "tarif_sewa": 500000,
+      "biaya_bbm": 50000,
+      "biaya_servis": 0,
+      "biaya_lainnya": 0,
+      "keterangan": "Uji coba Smart Auto-Availability"
     }
   ]
 }

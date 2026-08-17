@@ -182,10 +182,55 @@ app.post('/api/users', authenticateToken, requireRole('admin'), (req, res) => {
 });
 
 // ===================================================
+// HELPER AUTO-AVAILABILITY REALTIME
+// ===================================================
+function resolveMobilStatus(m, transaksiList) {
+  // Jika diset Maintenance secara manual oleh Admin di bengkel, pertahankan Maintenance
+  if (m.status_sewa && m.status_sewa.toLowerCase() === 'maintenance') {
+    return {
+      status_sewa: 'Maintenance',
+      tgl_kembali: m.tgl_kembali || '-'
+    };
+  }
+
+  const today = new Date().toISOString().split('T')[0];
+
+  // Cari transaksi yang mencakup tanggal hari ini: tgl_mulai <= today <= tgl_kembali
+  const activeTx = (transaksiList || [])
+    .filter(t => t.mobil_id === m.id)
+    .sort((a, b) => (b.tanggal || '').localeCompare(a.tanggal || ''))
+    .find(t => {
+      const start = t.tanggal || t.tgl_mulai || '';
+      const end = t.tgl_kembali || t.tanggal || '';
+      return start <= today && today <= end;
+    });
+
+  if (activeTx) {
+    return {
+      status_sewa: 'Disewa',
+      tgl_kembali: activeTx.tgl_kembali || activeTx.tanggal || '-'
+    };
+  }
+
+  return {
+    status_sewa: 'Tersedia',
+    tgl_kembali: '-'
+  };
+}
+
+// ===================================================
 // 2. ARMADA (CRUD Lengkap)
 // ===================================================
 app.get('/api/mobil', authenticateToken, (req, res) => {
-  res.json(db.dataMobil);
+  const result = db.dataMobil.map(m => {
+    const dynamicStatus = resolveMobilStatus(m, db.dataTransaksi);
+    return {
+      ...m,
+      status_sewa: dynamicStatus.status_sewa,
+      tgl_kembali: dynamicStatus.tgl_kembali
+    };
+  });
+  res.json(result);
 });
 
 app.post('/api/mobil', authenticateToken, requireRole('admin'), (req, res) => {
@@ -277,13 +322,17 @@ app.get('/api/transaksi', authenticateToken, (req, res) => {
 });
 
 app.post('/api/transaksi', authenticateToken, requireRole('admin'), (req, res) => {
-  const { mobil_id, tanggal, penyewa, tarif, tarif_sewa, biaya_bbm, biaya_servis, biaya_lainnya, keterangan } = req.body;
+  const { mobil_id, tanggal, tgl_kembali, penyewa, tarif, tarif_sewa, biaya_bbm, biaya_servis, biaya_lainnya, keterangan } = req.body;
   const tarifNilai = parseFloat(tarif !== undefined ? tarif : tarif_sewa) || 0;
+  const tglMulai = tanggal || new Date().toISOString().split('T')[0];
+  const tglSelesai = tgl_kembali || tglMulai;
 
   const newTx = {
     id: db.dataTransaksi.length > 0 ? db.dataTransaksi[db.dataTransaksi.length - 1].id + 1 : 1,
     mobil_id: parseInt(mobil_id),
-    tanggal: tanggal || new Date().toISOString().split('T')[0],
+    tanggal: tglMulai,
+    tgl_mulai: tglMulai,
+    tgl_kembali: tglSelesai,
     penyewa: penyewa ? penyewa.trim() : '-',
     tarif: tarifNilai,
     tarif_sewa: tarifNilai,
@@ -305,13 +354,17 @@ app.put('/api/transaksi/:id', authenticateToken, requireRole('admin'), (req, res
 
   if (index === -1) return res.status(404).json({ error: 'Transaksi tidak ditemukan!' });
 
-  const { mobil_id, tanggal, penyewa, tarif, tarif_sewa, biaya_bbm, biaya_servis, biaya_lainnya, keterangan } = req.body;
+  const { mobil_id, tanggal, tgl_kembali, penyewa, tarif, tarif_sewa, biaya_bbm, biaya_servis, biaya_lainnya, keterangan } = req.body;
   const tarifNilai = parseFloat(tarif !== undefined ? tarif : tarif_sewa) || 0;
+  const tglMulai = tanggal || db.dataTransaksi[index].tanggal;
+  const tglSelesai = tgl_kembali !== undefined ? tgl_kembali : (db.dataTransaksi[index].tgl_kembali || tglMulai);
 
   db.dataTransaksi[index] = {
     ...db.dataTransaksi[index],
     mobil_id: parseInt(mobil_id),
-    tanggal: tanggal || db.dataTransaksi[index].tanggal,
+    tanggal: tglMulai,
+    tgl_mulai: tglMulai,
+    tgl_kembali: tglSelesai,
     penyewa: penyewa ? penyewa.trim() : db.dataTransaksi[index].penyewa,
     tarif: tarifNilai,
     tarif_sewa: tarifNilai,
@@ -358,16 +411,18 @@ app.get('/api/laporan/dashboard', authenticateToken, (req, res) => {
 
     const isInv = m.kepemilikan && m.kepemilikan.toLowerCase() === 'investor';
     // Rumus Baru: JRCTRANS ambil 30% dari omset, Investor ambil 70% dikurangi biaya operasional
-    const porsi_pengelola = isInv ? (pend * 0.30) : laba_bersih;
-    const porsi_investor = isInv ? ((pend * 0.70) - bia) : 0;
+    const porsi_pengelola = isInv ? Math.round(pend * 0.30) : laba_bersih;
+    const porsi_investor = isInv ? (Math.round(pend * 0.70) - bia) : 0;
+
+    const dynamicStatus = resolveMobilStatus(m, db.dataTransaksi);
 
     return {
       id: m.id,
       nama_mobil: m.nama_mobil,
       plat_nomor: m.plat_nomor,
       kepemilikan: isInv ? 'Investor' : 'JRCTRANS',
-      status_sewa: m.status_sewa || 'Tersedia',
-      tgl_kembali: m.tgl_kembali || '-',
+      status_sewa: dynamicStatus.status_sewa,
+      tgl_kembali: dynamicStatus.tgl_kembali,
       total_pendapatan: pend,
       biaya_bbm: bbm,
       biaya_servis: servis,

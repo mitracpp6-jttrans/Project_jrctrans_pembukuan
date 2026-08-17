@@ -556,14 +556,18 @@
     <div class="bg-white rounded-xl shadow-xl max-w-lg w-full p-6 space-y-4">
       <h3 class="text-lg font-black text-gray-800">Input Transaksi Baru</h3>
       <form onsubmit="simpanTransaksi(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-bold text-gray-600 mb-1">Pilih Armada</label>
+          <select id="trx-mobil-id" required class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none"></select>
+        </div>
         <div class="grid grid-cols-2 gap-2">
           <div>
-            <label class="block text-xs font-bold text-gray-600 mb-1">Pilih Armada</label>
-            <select id="trx-mobil-id" required class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none"></select>
+            <label class="block text-xs font-bold text-gray-600 mb-1">Tgl Mulai Sewa</label>
+            <input type="date" id="trx-tanggal" required onchange="onTrxTanggalMulaiChange()" class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
           </div>
           <div>
-            <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal</label>
-            <input type="date" id="trx-tanggal" required class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+            <label class="block text-xs font-bold text-gray-600 mb-1">Estimasi Tgl Selesai / Kembali</label>
+            <input type="date" id="trx-tgl-kembali" required class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
           </div>
         </div>
         <div>
@@ -592,7 +596,7 @@
         </div>
         <div>
           <label class="block text-xs font-bold text-gray-600 mb-1">Keterangan / Catatan</label>
-          <input type="text" id="trx-keterangan" placeholder="Catatan tambahan" class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+          <input type="text" id="trx-keterangan" placeholder="Catatan tambahan (tujuan, servis, dll)" class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
         </div>
         <div class="flex justify-end gap-2 pt-2">
           <button type="button" onclick="closeModalTransaksi()" class="px-4 py-2 border rounded-lg text-xs font-bold hover:bg-gray-50">Batal</button>
@@ -608,14 +612,18 @@
       <h3 class="text-lg font-black text-gray-800">Edit Data Transaksi</h3>
       <form onsubmit="simpanEditTransaksi(event)" class="space-y-3">
         <input type="hidden" id="edit-trx-id">
+        <div>
+          <label class="block text-xs font-bold text-gray-600 mb-1">Pilih Armada</label>
+          <select id="edit-trx-mobil-id" required class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none"></select>
+        </div>
         <div class="grid grid-cols-2 gap-2">
           <div>
-            <label class="block text-xs font-bold text-gray-600 mb-1">Pilih Armada</label>
-            <select id="edit-trx-mobil-id" required class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none"></select>
+            <label class="block text-xs font-bold text-gray-600 mb-1">Tgl Mulai Sewa</label>
+            <input type="date" id="edit-trx-tanggal" required class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
           </div>
           <div>
-            <label class="block text-xs font-bold text-gray-600 mb-1">Tanggal</label>
-            <input type="date" id="edit-trx-tanggal" required class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+            <label class="block text-xs font-bold text-gray-600 mb-1">Estimasi Tgl Selesai / Kembali</label>
+            <input type="date" id="edit-trx-tgl-kembali" required class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
           </div>
         </div>
         <div>
@@ -871,6 +879,8 @@
       
       const tglInput = document.getElementById('trx-tanggal');
       if (tglInput) tglInput.valueAsDate = new Date();
+      const tglKembali = document.getElementById('trx-tgl-kembali');
+      if (tglKembali) tglKembali.valueAsDate = new Date();
     }
 
     // Mobile Sidebar Toggle
@@ -962,6 +972,13 @@
       document.getElementById('modal-transaksi').classList.add('hidden');
       document.getElementById('modal-transaksi').classList.remove('flex');
     }
+    function onTrxTanggalMulaiChange() {
+      const startVal = document.getElementById('trx-tanggal').value;
+      const returnInput = document.getElementById('trx-tgl-kembali');
+      if (returnInput && (!returnInput.value || returnInput.value < startVal)) {
+        returnInput.value = startVal;
+      }
+    }
 
     // Modal Control Transaksi Edit
     async function openEditTransaksi(id) {
@@ -982,7 +999,8 @@
       }
 
       document.getElementById('edit-trx-id').value = tx.id;
-      document.getElementById('edit-trx-tanggal').value = tx.tanggal;
+      document.getElementById('edit-trx-tanggal').value = tx.tanggal || tx.tgl_mulai || '';
+      document.getElementById('edit-trx-tgl-kembali').value = tx.tgl_kembali || tx.tanggal || '';
       document.getElementById('edit-trx-penyewa').value = tx.penyewa;
       document.getElementById('edit-trx-tarif').value = tx.tarif || tx.tarif_sewa || 0;
       document.getElementById('edit-trx-bbm').value = tx.biaya_bbm || 0;
@@ -1058,7 +1076,7 @@
             <div>
               <p class="font-bold text-gray-800 text-xs">${m.nama_mobil}</p>
               <p class="text-[10px] text-gray-500 font-mono">${m.plat_nomor}</p>
-              ${m.tgl_kembali && m.tgl_kembali !== '-' ? `<p class="text-[9px] mt-1 text-gray-600">Selesai: <b>${m.tgl_kembali}</b></p>` : ''}
+              ${m.tgl_kembali && m.tgl_kembali !== '-' ? `<p class="text-[9px] mt-1 text-gray-600 font-semibold"><i class="fa-solid fa-flag-checkered mr-1"></i>Selesai: <b>${m.tgl_kembali}</b></p>` : ''}
             </div>
             <div class="text-right">
               <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold text-white ${statusBadge}">
@@ -1104,27 +1122,26 @@
           type: 'bar',
           data: {
             labels: labelsBar,
-            datasets: [{ label: 'Pendapatan (Rp)', data: dataPendapatanBar, backgroundColor: '#0F4C25', borderRadius: 4 }]
+            datasets: [{ label: 'Omset per Mobil', data: dataPendapatanBar, backgroundColor: '#16A34A', borderRadius: 4 }]
           },
-          options: { responsive: true, maintainAspectRatio: false }
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
         });
       }
 
-      // Pie Chart Bagi Hasil
-      const laba = totPendapatan - totBiaya;
-      const porsiInv = laba > 0 ? laba * 0.7 : 0;
-      const porsiPeng = laba > 0 ? laba * 0.3 : 0;
+      // Doughnut Chart Bagi Hasil
+      const totalInv = details.filter(d => d.kepemilikan === 'Investor').reduce((s, d) => s + d.total_pendapatan, 0);
+      const totalSendiri = details.filter(d => d.kepemilikan === 'JRCTRANS').reduce((s, d) => s + d.total_pendapatan, 0);
 
       if (pieChart) pieChart.destroy();
       const ctxPie = document.getElementById('pieChart');
       if (ctxPie) {
         pieChart = new Chart(ctxPie, {
-          type: 'pie',
+          type: 'doughnut',
           data: {
-            labels: ['Investor (70%)', 'Pengelola (30%)'],
-            datasets: [{ data: [porsiInv, porsiPeng], backgroundColor: ['#7C3AED', '#2563EB'] }]
+            labels: ['Unit Investor', 'Unit JRCTRANS'],
+            datasets: [{ data: [totalInv, totalSendiri], backgroundColor: ['#8B5CF6', '#0F4C25'] }]
           },
-          options: { responsive: true, maintainAspectRatio: false }
+          options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { display: false } } }
         });
       }
     }
@@ -1143,39 +1160,46 @@
         }
 
         list.forEach(m => {
-          const st = (m.status_sewa || '').toLowerCase();
-          let badgeClass = 'bg-green-100 text-green-700';
-          if (st === 'sewa' || st === 'disewa') badgeClass = 'bg-amber-100 text-amber-700';
-          if (st === 'maintenance' || st === 'servis') badgeClass = 'bg-red-100 text-red-700';
+          const isInv = (m.kepemilikan === 'investor' || m.kepemilikan === 'Investor');
+          let badgeStatus = 'bg-green-100 text-green-700 border-green-300';
+          let statusLabel = m.status_sewa || 'Tersedia';
+
+          if (statusLabel === 'Sewa' || statusLabel === 'Disewa') {
+            badgeStatus = 'bg-amber-100 text-amber-700 border-amber-300';
+          } else if (statusLabel === 'Maintenance') {
+            badgeStatus = 'bg-red-100 text-red-700 border-red-300';
+          }
+
+          const actionHtml = role === 'admin' ? `
+            <button onclick="openEditMobil(${m.id})" class="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition"><i class="fa-solid fa-pen-to-square"></i></button>
+            <button onclick="deleteMobil(${m.id})" class="p-1.5 text-red-600 hover:bg-red-50 rounded transition"><i class="fa-solid fa-trash"></i></button>
+          ` : `<span class="text-xs text-gray-400 italic">Read-only</span>`;
+
+          const statusDropdownHtml = role === 'admin' ? `
+            <select onchange="updateStatusMobil(${m.id}, this.value)" class="text-xs border rounded px-2 py-1 font-bold ${badgeStatus} focus:outline-none">
+              <option value="Tersedia" ${statusLabel === 'Tersedia' ? 'selected' : ''}>🟢 Tersedia</option>
+              <option value="Sewa" ${statusLabel === 'Sewa' || statusLabel === 'Disewa' ? 'selected' : ''}>🟡 Disewa</option>
+              <option value="Maintenance" ${statusLabel === 'Maintenance' ? 'selected' : ''}>🔴 Maintenance</option>
+            </select>
+          ` : `
+            <span class="px-2 py-1 rounded text-xs font-bold ${badgeStatus}">
+              ${statusLabel}
+            </span>
+          `;
 
           tbody.innerHTML += `
             <tr class="hover:bg-gray-50 border-b border-gray-100">
-              <td class="p-3">
-                <span class="font-bold text-gray-800">${m.nama_mobil}</span><br>
-                <span class="text-gray-500 font-mono text-[10px]">${m.plat_nomor}</span>
-              </td>
+              <td class="p-3 font-bold text-gray-800">${m.nama_mobil}</td>
+              <td class="p-3 font-mono text-gray-600">${m.plat_nomor}</td>
               <td class="p-3">${m.tahun}</td>
               <td class="p-3">
-                <span class="px-2 py-0.5 rounded text-[10px] font-bold ${m.kepemilikan === 'investor' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}">
-                  ${m.kepemilikan === 'investor' ? 'Investor' : 'JRCTRANS'}
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold ${isInv ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}">
+                  ${isInv ? 'Investor' : 'JRCTRANS'}
                 </span>
               </td>
-              <td class="p-3">
-                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${badgeClass}">
-                  ${m.status_sewa || 'Tersedia'}
-                </span>
-              </td>
-              <td class="p-3">${m.tgl_kembali || '-'}</td>
-              <td class="p-3 text-center space-x-1">
-                ${role !== 'investor' ? `
-                  <button onclick="updateStatusMobil(${m.id}, 'Tersedia')" class="bg-green-600 text-white px-2 py-1 rounded text-[10px] hover:bg-green-700 shadow-xs">Tersedia</button>
-                  <button onclick="updateStatusMobil(${m.id}, 'Sewa')" class="bg-amber-500 text-white px-2 py-1 rounded text-[10px] hover:bg-amber-600 shadow-xs">Disewa</button>
-                  <button onclick="updateStatusMobil(${m.id}, 'Maintenance')" class="bg-red-600 text-white px-2 py-1 rounded text-[10px] hover:bg-red-700 shadow-xs">Servis</button>
-                ` : '-'}
-              </td>
-              <td class="p-3 text-center">
-                ${role !== 'investor' ? `<button onclick="deleteMobil(${m.id})" class="text-red-600 hover:text-red-800 px-2 py-1" title="Hapus Armada"><i class="fa-solid fa-trash"></i></button>` : '-'}
-              </td>
+              <td class="p-3">${statusDropdownHtml}</td>
+              <td class="p-3 text-xs text-gray-600">${m.tgl_kembali || '-'}</td>
+              <td class="p-3 text-center space-x-1">${actionHtml}</td>
             </tr>
           `;
         });
@@ -1187,11 +1211,10 @@
     async function simpanArmada(e) {
       e.preventDefault();
       const body = {
-        nama_mobil: document.getElementById('add-nama-mobil').value,
-        plat_nomor: document.getElementById('add-plat-nomor').value,
-        tahun: document.getElementById('add-tahun').value,
-        kepemilikan: document.getElementById('add-kepemilikan').value,
-        status_sewa: 'Tersedia'
+        nama_mobil: document.getElementById('armada-nama').value,
+        plat_nomor: document.getElementById('armada-plat').value,
+        tahun: document.getElementById('armada-tahun').value,
+        kepemilikan: document.getElementById('armada-kepemilikan').value
       };
 
       try {
@@ -1211,7 +1234,7 @@
 
     async function updateStatusMobil(id, status_sewa) {
       let tgl_kembali = '-';
-      if (status_sewa === 'Sewa') {
+      if (status_sewa === 'Sewa' || status_sewa === 'Disewa') {
         const inputTgl = prompt('Masukkan estimasi tanggal kembali (YYYY-MM-DD) atau kosongkan:');
         if (inputTgl) tgl_kembali = inputTgl;
       }
@@ -1257,23 +1280,24 @@
         list.forEach(t => {
           const tarifVal = Number(t.tarif_sewa || t.tarif || 0);
           const totalOps = (Number(t.biaya_bbm) || 0) + (Number(t.biaya_servis) || 0) + (Number(t.biaya_lainnya) || 0);
+          const tglKembaliInfo = (t.tgl_kembali && t.tgl_kembali !== t.tanggal) ? `<br><span class="text-[10px] text-gray-500 font-semibold"><i class="fa-solid fa-arrow-right text-[8px] mr-1"></i>s/d ${t.tgl_kembali}</span>` : '';
 
           tbody.innerHTML += `
             <tr class="hover:bg-gray-50 border-b border-gray-100">
-              <td class="p-3">${t.tanggal}</td>
+              <td class="p-3 font-medium text-gray-700">${t.tanggal}${tglKembaliInfo}</td>
               <td class="p-3">
                 <span class="font-bold text-gray-800">${t.nama_mobil || '-'}</span><br>
                 <span class="text-gray-500 font-mono text-[10px]">${t.plat_nomor || '-'}</span>
               </td>
-              <td class="p-3">${t.penyewa || '-'}</td>
+              <td class="p-3 font-semibold text-gray-800">${t.penyewa || '-'}</td>
               <td class="p-3 font-semibold text-green-700">${formatRp(tarifVal)}</td>
               <td class="p-3 font-semibold text-red-600">${formatRp(totalOps)}</td>
-              <td class="p-3">${t.keterangan || '-'}</td>
+              <td class="p-3 text-xs text-gray-600">${t.keterangan || '-'}</td>
               <td class="p-3 text-center space-x-1">
-                ${role !== 'investor' ? `
-                  <button onclick="openEditTransaksi(${t.id})" class="text-blue-600 hover:text-blue-800 px-2 py-1" title="Edit Transaksi"><i class="fa-solid fa-pen-to-square"></i></button>
-                  <button onclick="deleteTransaksi(${t.id})" class="text-red-600 hover:text-red-800 px-2 py-1" title="Hapus Transaksi"><i class="fa-solid fa-trash"></i></button>
-                ` : '-'}
+                ${role === 'admin' ? `
+                  <button onclick="openEditTransaksi(${t.id})" class="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition"><i class="fa-solid fa-pen-to-square"></i></button>
+                  <button onclick="deleteTransaksi(${t.id})" class="p-1.5 text-red-600 hover:bg-red-50 rounded transition"><i class="fa-solid fa-trash"></i></button>
+                ` : `<span class="text-xs text-gray-400 italic">Read-only</span>`}
               </td>
             </tr>
           `;
@@ -1288,6 +1312,7 @@
       const body = {
         mobil_id: document.getElementById('trx-mobil-id').value,
         tanggal: document.getElementById('trx-tanggal').value,
+        tgl_kembali: document.getElementById('trx-tgl-kembali').value || document.getElementById('trx-tanggal').value,
         penyewa: document.getElementById('trx-penyewa').value,
         tarif_sewa: Number(document.getElementById('trx-tarif').value) || 0,
         biaya_bbm: Number(document.getElementById('trx-bbm').value) || 0,
@@ -1303,12 +1328,14 @@
         });
         closeModalTransaksi();
         loadTransaksi();
+        loadArmada();
         loadDashboard();
         loadReport();
         loadAllReport();
         e.target.reset();
         document.getElementById('trx-tanggal').valueAsDate = new Date();
-        alert('Transaksi berhasil disimpan & data dashboard diperbarui secara real-time!');
+        document.getElementById('trx-tgl-kembali').valueAsDate = new Date();
+        alert('Transaksi berhasil disimpan & status armada diperbarui secara otomatis!');
       } catch (err) {
         alert(err.message);
       }
@@ -1320,6 +1347,7 @@
       const body = {
         mobil_id: document.getElementById('edit-trx-mobil-id').value,
         tanggal: document.getElementById('edit-trx-tanggal').value,
+        tgl_kembali: document.getElementById('edit-trx-tgl-kembali').value || document.getElementById('edit-trx-tanggal').value,
         penyewa: document.getElementById('edit-trx-penyewa').value,
         tarif_sewa: Number(document.getElementById('edit-trx-tarif').value) || 0,
         biaya_bbm: Number(document.getElementById('edit-trx-bbm').value) || 0,
@@ -1335,6 +1363,7 @@
         });
         closeModalEditTransaksi();
         loadTransaksi();
+        loadArmada();
         loadDashboard();
         loadReport();
         loadAllReport();
