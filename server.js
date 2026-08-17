@@ -622,10 +622,14 @@ app.get('/api/laporan/keseluruhan', authenticateToken, requireRole('admin'), (re
   });
 });
 
-app.get('/*path', (req, res) => {
+app.use((req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-app.listen(PORT, () => {
-  console.log(`Server JRCTRANS Berjalan di http://localhost:${PORT}`);
-});
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`Server JRCTRANS Berjalan di http://localhost:${PORT}`);
+  });
+}
+
+module.exports = app;
