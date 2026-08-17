@@ -449,8 +449,8 @@ app.get('/api/laporan/investor', authenticateToken, requireRole('admin', 'invest
       total_lainnya_all += lainnya;
 
       // Rumus: JRCTRANS ambil 30% murni, Investor ambil (70% omset - Biaya Ops)
-      const porsi_pengelola = pend * 0.30;
-      const hak_investor_kotor_70 = pend * 0.70;
+      const porsi_pengelola = Math.round(pend * 0.30);
+      const hak_investor_kotor_70 = Math.round(pend * 0.70);
       const hak_investor_bersih = hak_investor_kotor_70 - bia;
 
       rekapInvestor.push({
@@ -518,9 +518,9 @@ app.get('/api/laporan/keseluruhan', authenticateToken, requireRole('admin'), (re
 
     if (tx.length > 0) {
       const isInv = m.kepemilikan && m.kepemilikan.toLowerCase() === 'investor';
-      // Rumus Baru: Jika Investor, JRCTRANS dapat 30% kotor, Investor dapat (70% kotor - Biaya)
-      const porsi_peng = isInv ? (pend * 0.30) : laba_bersih;
-      const porsi_inv = isInv ? ((pend * 0.70) - bia) : 0;
+      // Rumus: Jika Investor, JRCTRANS dapat 30% kotor, Investor dapat (70% kotor - Biaya)
+      const porsi_peng = isInv ? Math.round(pend * 0.30) : laba_bersih;
+      const porsi_inv = isInv ? (Math.round(pend * 0.70) - bia) : 0;
 
       total_pendapatan += pend;
       total_biaya += bia;
