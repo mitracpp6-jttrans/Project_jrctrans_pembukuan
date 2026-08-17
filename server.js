@@ -411,10 +411,14 @@ app.get('/api/laporan/dashboard', authenticateToken, (req, res) => {
 
 // Laporan Investor (Hanya untuk Admin & Investor)
 app.get('/api/laporan/investor', authenticateToken, requireRole('admin', 'investor'), (req, res) => {
-  const { filter, start, end } = req.query;
+  const { filter, start, end, mobil_id } = req.query;
   const filteredTx = filterTxByPeriod(db.dataTransaksi, filter, start, end);
 
-  const mobilInvestor = db.dataMobil.filter(m => m.kepemilikan && m.kepemilikan.toLowerCase() === 'investor');
+  let mobilInvestor = db.dataMobil.filter(m => m.kepemilikan && m.kepemilikan.toLowerCase() === 'investor');
+  if (mobil_id && mobil_id !== 'all') {
+    const targetId = parseInt(mobil_id);
+    mobilInvestor = mobilInvestor.filter(m => m.id === targetId);
+  }
 
   let total_pendapatan = 0;
   let total_biaya = 0;

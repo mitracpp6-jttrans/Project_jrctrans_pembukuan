@@ -341,14 +341,28 @@
 
           <!-- FILTER BAR LAPORAN -->
           <div class="bg-white p-3 rounded-xl border border-gray-200 shadow-sm flex flex-wrap items-center gap-3">
-            <span class="text-xs font-bold text-gray-600"><i class="fa-solid fa-filter mr-1 text-custom-green"></i> Filter Periode:</span>
-            <select id="report-filter-type" onchange="onReportFilterChange()" class="border rounded-lg px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
-              <option value="all">Semua Waktu (Realtime)</option>
-              <option value="hari_ini">Hari Ini</option>
-              <option value="7_hari">7 Hari Terakhir</option>
-              <option value="bulan_ini">Bulan Ini</option>
-              <option value="custom">Custom Tanggal</option>
-            </select>
+            <!-- Pilihan Unit Mobil Investor -->
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold text-gray-600"><i class="fa-solid fa-car text-purple-600 mr-1"></i> Pilih Unit:</span>
+              <select id="report-filter-mobil" onchange="loadReport()" class="border rounded-lg px-2.5 py-1.5 text-xs font-bold text-purple-900 bg-purple-50/50 border-purple-200 focus:ring-2 focus:ring-purple-600 focus:outline-none">
+                <option value="all">🚗 Semua Unit Investor</option>
+              </select>
+            </div>
+
+            <div class="h-4 w-px bg-gray-300 hidden md:block"></div>
+
+            <!-- Pilihan Periode Waktu -->
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold text-gray-600"><i class="fa-solid fa-filter mr-1 text-custom-green"></i> Periode:</span>
+              <select id="report-filter-type" onchange="onReportFilterChange()" class="border rounded-lg px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+                <option value="all">Semua Waktu (Realtime)</option>
+                <option value="hari_ini">Hari Ini</option>
+                <option value="7_hari">7 Hari Terakhir</option>
+                <option value="bulan_ini">Bulan Ini</option>
+                <option value="custom">Custom Tanggal</option>
+              </select>
+            </div>
+
             <div id="custom-date-inputs" class="hidden flex items-center gap-2">
               <input type="date" id="report-start" class="border rounded-lg px-2.5 py-1.5 text-xs focus:outline-none">
               <span class="text-xs font-bold text-gray-500">s/d</span>
@@ -848,6 +862,7 @@
         if (menuCreateUser) menuCreateUser.classList.remove('hidden');
       }
 
+      populateReportMobilDropdown();
       loadDashboard();
       document.getElementById('report-date-stamp').innerText = new Date().toLocaleDateString('id-ID');
       const stampAll = document.getElementById('allreport-date-stamp');
@@ -893,7 +908,10 @@
       if (tab === 'dashboard') loadDashboard();
       if (tab === 'armada') loadArmada();
       if (tab === 'transaksi') loadTransaksi();
-      if (tab === 'report') loadReport();
+      if (tab === 'report') {
+        populateReportMobilDropdown();
+        loadReport();
+      }
       if (tab === 'all-report') loadAllReport();
     }
 
@@ -1342,6 +1360,26 @@
     // ==========================================
     // REPORT INVESTOR HANDLERS
     // ==========================================
+    async function populateReportMobilDropdown() {
+      try {
+        const mobilList = await apiFetch('/api/mobil');
+        const select = document.getElementById('report-filter-mobil');
+        if (!select) return;
+        const currentVal = select.value;
+        const invMobil = (mobilList || []).filter(m => m.kepemilikan && m.kepemilikan.toLowerCase() === 'investor');
+        
+        select.innerHTML = '<option value="all">🚗 Semua Unit Investor</option>';
+        invMobil.forEach(m => {
+          select.innerHTML += `<option value="${m.id}">🚗 ${m.nama_mobil} (${m.plat_nomor})</option>`;
+        });
+        if (currentVal && Array.from(select.options).some(o => o.value === currentVal)) {
+          select.value = currentVal;
+        }
+      } catch (e) {
+        console.error('Error populating mobil dropdown:', e);
+      }
+    }
+
     function onReportFilterChange() {
       const type = document.getElementById('report-filter-type').value;
       const customDiv = document.getElementById('custom-date-inputs');
@@ -1355,9 +1393,13 @@
 
     async function loadReport() {
       const filterType = document.getElementById('report-filter-type').value;
+      const mobilId = document.getElementById('report-filter-mobil')?.value || 'all';
       let query = `?filter=${filterType}`;
-      let labelPeriod = 'Semua Waktu';
+      if (mobilId && mobilId !== 'all') {
+        query += `&mobil_id=${mobilId}`;
+      }
 
+      let labelPeriod = 'Semua Waktu';
       if (filterType === 'hari_ini') labelPeriod = 'Hari Ini';
       if (filterType === '7_hari') labelPeriod = '7 Hari Terakhir';
       if (filterType === 'bulan_ini') labelPeriod = 'Bulan Ini';
