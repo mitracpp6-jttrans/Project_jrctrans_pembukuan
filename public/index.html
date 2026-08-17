@@ -524,16 +524,16 @@
       <form onsubmit="simpanArmada(event)" class="space-y-3">
         <div>
           <label class="block text-xs font-bold text-gray-600 mb-1">Nama Mobil</label>
-          <input type="text" id="add-nama-mobil" required placeholder="Contoh: Innova Reborn" class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+          <input type="text" id="add-nama-mobil" required placeholder="Contoh: Toyota Camry" class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
         </div>
         <div>
           <label class="block text-xs font-bold text-gray-600 mb-1">Plat Nomor</label>
-          <input type="text" id="add-plat-nomor" required placeholder="Contoh: E 1234 XX" class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+          <input type="text" id="add-plat-nomor" required placeholder="Contoh: E 7789 BA" class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
         </div>
         <div class="grid grid-cols-2 gap-2">
           <div>
             <label class="block text-xs font-bold text-gray-600 mb-1">Tahun</label>
-            <input type="number" id="add-tahun" required placeholder="2022" class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+            <input type="number" id="add-tahun" required placeholder="2025" class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
           </div>
           <div>
             <label class="block text-xs font-bold text-gray-600 mb-1">Kepemilikan</label>
@@ -546,6 +546,41 @@
         <div class="flex justify-end gap-2 pt-2">
           <button type="button" onclick="closeModalArmada()" class="px-4 py-2 border rounded-lg text-xs font-bold hover:bg-gray-50">Batal</button>
           <button type="submit" class="px-4 py-2 bg-custom-green text-white rounded-lg text-xs font-bold hover:bg-custom-hover shadow-sm">Simpan Mobil</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= MODAL EDIT MOBIL ================= -->
+  <div id="modal-edit-armada" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-6 space-y-4">
+      <h3 class="text-lg font-black text-gray-800">Edit Unit Armada</h3>
+      <form onsubmit="simpanEditArmada(event)" class="space-y-3">
+        <input type="hidden" id="edit-armada-id">
+        <div>
+          <label class="block text-xs font-bold text-gray-600 mb-1">Nama Mobil</label>
+          <input type="text" id="edit-armada-nama" required class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-600 mb-1">Plat Nomor</label>
+          <input type="text" id="edit-armada-plat" required class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs font-bold text-gray-600 mb-1">Tahun</label>
+            <input type="number" id="edit-armada-tahun" required class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-gray-600 mb-1">Kepemilikan</label>
+            <select id="edit-armada-kepemilikan" class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+              <option value="Investor">Investor (Bagi Hasil 70:30)</option>
+              <option value="JRCTRANS">JRCTRANS (Milik Sendiri)</option>
+            </select>
+          </div>
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeModalEditArmada()" class="px-4 py-2 border rounded-lg text-xs font-bold hover:bg-gray-50">Batal</button>
+          <button type="submit" class="px-4 py-2 bg-custom-green text-white rounded-lg text-xs font-bold hover:bg-custom-hover shadow-sm">Simpan Perubahan</button>
         </div>
       </form>
     </div>
@@ -1211,10 +1246,10 @@
     async function simpanArmada(e) {
       e.preventDefault();
       const body = {
-        nama_mobil: document.getElementById('armada-nama').value,
-        plat_nomor: document.getElementById('armada-plat').value,
-        tahun: document.getElementById('armada-tahun').value,
-        kepemilikan: document.getElementById('armada-kepemilikan').value
+        nama_mobil: document.getElementById('add-nama-mobil').value,
+        plat_nomor: document.getElementById('add-plat-nomor').value,
+        tahun: document.getElementById('add-tahun').value,
+        kepemilikan: document.getElementById('add-kepemilikan').value
       };
 
       try {
@@ -1225,8 +1260,58 @@
         closeModalArmada();
         loadArmada();
         loadDashboard();
+        populateReportMobilDropdown();
         e.target.reset();
-        alert('Armada berhasil ditambahkan!');
+        alert('Armada mobil berhasil ditambahkan!');
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    async function openEditMobil(id) {
+      try {
+        const list = await apiFetch('/api/mobil');
+        const mobil = list.find(m => m.id === id);
+        if (!mobil) return;
+
+        document.getElementById('edit-armada-id').value = mobil.id;
+        document.getElementById('edit-armada-nama').value = mobil.nama_mobil;
+        document.getElementById('edit-armada-plat').value = mobil.plat_nomor;
+        document.getElementById('edit-armada-tahun').value = mobil.tahun;
+        document.getElementById('edit-armada-kepemilikan').value = (mobil.kepemilikan && mobil.kepemilikan.toLowerCase().includes('investor')) ? 'Investor' : 'JRCTRANS';
+
+        document.getElementById('modal-edit-armada').classList.remove('hidden');
+        document.getElementById('modal-edit-armada').classList.add('flex');
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function closeModalEditArmada() {
+      document.getElementById('modal-edit-armada').classList.add('hidden');
+      document.getElementById('modal-edit-armada').classList.remove('flex');
+    }
+
+    async function simpanEditArmada(e) {
+      e.preventDefault();
+      const id = document.getElementById('edit-armada-id').value;
+      const body = {
+        nama_mobil: document.getElementById('edit-armada-nama').value,
+        plat_nomor: document.getElementById('edit-armada-plat').value,
+        tahun: document.getElementById('edit-armada-tahun').value,
+        kepemilikan: document.getElementById('edit-armada-kepemilikan').value
+      };
+
+      try {
+        await apiFetch(`/api/mobil/${id}`, {
+          method: 'PUT',
+          body: JSON.stringify(body)
+        });
+        closeModalEditArmada();
+        loadArmada();
+        loadDashboard();
+        populateReportMobilDropdown();
+        alert('Data armada berhasil diperbarui!');
       } catch (err) {
         alert(err.message);
       }
