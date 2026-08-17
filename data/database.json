@@ -57,6 +57,18 @@
       "biaya_servis": 1234,
       "biaya_lainnya": 12,
       "keterangan": "-"
+    },
+    {
+      "id": 2,
+      "mobil_id": 1,
+      "tanggal": "2026-08-17",
+      "penyewa": "Test Investor Formula",
+      "tarif": 1000000,
+      "tarif_sewa": 1000000,
+      "biaya_bbm": 200000,
+      "biaya_servis": 300000,
+      "biaya_lainnya": 50000,
+      "keterangan": "Uji Coba Rumus 70-30 Biaya ke Investor"
     }
   ]
 }

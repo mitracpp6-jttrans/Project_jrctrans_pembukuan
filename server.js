@@ -347,15 +347,19 @@ app.get('/api/laporan/dashboard', authenticateToken, (req, res) => {
   const detailMobil = db.dataMobil.map(m => {
     const txMobil = filteredTx.filter(t => t.mobil_id === m.id);
     const pend = txMobil.reduce((s, t) => s + (t.tarif || t.tarif_sewa || 0), 0);
-    const bia = txMobil.reduce((s, t) => s + ((t.biaya_bbm || 0) + (t.biaya_servis || 0) + (t.biaya_lainnya || 0)), 0);
+    const bbm = txMobil.reduce((s, t) => s + (t.biaya_bbm || 0), 0);
+    const servis = txMobil.reduce((s, t) => s + (t.biaya_servis || 0), 0);
+    const lainnya = txMobil.reduce((s, t) => s + (t.biaya_lainnya || 0), 0);
+    const bia = bbm + servis + lainnya;
     const laba_bersih = pend - bia;
 
     total_pendapatan += pend;
     total_biaya += bia;
 
     const isInv = m.kepemilikan && m.kepemilikan.toLowerCase() === 'investor';
-    const porsi_investor = isInv ? (laba_bersih > 0 ? laba_bersih * 0.70 : 0) : 0;
-    const porsi_pengelola = isInv ? (laba_bersih > 0 ? laba_bersih * 0.30 : laba_bersih) : laba_bersih;
+    // Rumus Baru: JRCTRANS ambil 30% dari omset, Investor ambil 70% dikurangi biaya operasional
+    const porsi_pengelola = isInv ? (pend * 0.30) : laba_bersih;
+    const porsi_investor = isInv ? ((pend * 0.70) - bia) : 0;
 
     return {
       id: m.id,
@@ -365,6 +369,9 @@ app.get('/api/laporan/dashboard', authenticateToken, (req, res) => {
       status_sewa: m.status_sewa || 'Tersedia',
       tgl_kembali: m.tgl_kembali || '-',
       total_pendapatan: pend,
+      biaya_bbm: bbm,
+      biaya_servis: servis,
+      biaya_lainnya: lainnya,
       total_biaya: bia,
       laba_bersih,
       porsi_pengelola,
@@ -411,6 +418,9 @@ app.get('/api/laporan/investor', authenticateToken, requireRole('admin', 'invest
 
   let total_pendapatan = 0;
   let total_biaya = 0;
+  let total_bbm_all = 0;
+  let total_servis_all = 0;
+  let total_lainnya_all = 0;
 
   // Hanya sertakan unit yang memiliki transaksi aktif pada periode terpilih (agar setelah hapus transaksi tidak muncul baris Rp 0)
   const rekapInvestor = [];
@@ -418,15 +428,23 @@ app.get('/api/laporan/investor', authenticateToken, requireRole('admin', 'invest
   mobilInvestor.forEach(m => {
     const tx = filteredTx.filter(t => t.mobil_id === m.id);
     const pend = tx.reduce((s, t) => s + (t.tarif || t.tarif_sewa || 0), 0);
-    const bia = tx.reduce((s, t) => s + ((t.biaya_bbm || 0) + (t.biaya_servis || 0) + (t.biaya_lainnya || 0)), 0);
+    const bbm = tx.reduce((s, t) => s + (t.biaya_bbm || 0), 0);
+    const servis = tx.reduce((s, t) => s + (t.biaya_servis || 0), 0);
+    const lainnya = tx.reduce((s, t) => s + (t.biaya_lainnya || 0), 0);
+    const bia = bbm + servis + lainnya;
     const laba_bersih = pend - bia;
 
     if (tx.length > 0) {
       total_pendapatan += pend;
       total_biaya += bia;
+      total_bbm_all += bbm;
+      total_servis_all += servis;
+      total_lainnya_all += lainnya;
 
-      const porsi_investor = laba_bersih > 0 ? laba_bersih * 0.70 : 0;
-      const porsi_pengelola = laba_bersih > 0 ? laba_bersih * 0.30 : laba_bersih;
+      // Rumus Baru: JRCTRANS ambil 30% murni, Investor ambil (70% omset - Biaya Ops)
+      const porsi_pengelola = pend * 0.30;
+      const hak_investor_kotor_70 = pend * 0.70;
+      const hak_investor_bersih = hak_investor_kotor_70 - bia;
 
       rekapInvestor.push({
         id_mobil: m.id,
@@ -434,11 +452,17 @@ app.get('/api/laporan/investor', authenticateToken, requireRole('admin', 'invest
         plat_nomor: m.plat_nomor,
         tahun: m.tahun,
         kepemilikan: 'Investor',
+        total_transaksi: tx.length,
         total_pendapatan: pend,
+        biaya_bbm: bbm,
+        biaya_servis: servis,
+        biaya_lainnya: lainnya,
         total_biaya: bia,
         laba_bersih,
-        hak_investor_70: porsi_investor,
-        porsi_pengelola_30: porsi_pengelola
+        hak_investor_kotor_70,
+        hak_investor_70: hak_investor_bersih, // Hak bersih diterima investor
+        porsi_pengelola_30: porsi_pengelola,  // Porsi manajemen JRCTRANS
+        riwayat_transaksi: tx
       });
     }
   });
@@ -448,6 +472,9 @@ app.get('/api/laporan/investor', authenticateToken, requireRole('admin', 'invest
     summary: {
       total_pendapatan,
       total_biaya,
+      total_bbm: total_bbm_all,
+      total_servis: total_servis_all,
+      total_lainnya: total_lainnya_all,
       laba_bersih: total_pendapatan - total_biaya,
       total_hak_investor: rekapInvestor.reduce((s, r) => s + r.hak_investor_70, 0),
       total_porsi_pengelola: rekapInvestor.reduce((s, r) => s + r.porsi_pengelola_30, 0)
@@ -460,12 +487,14 @@ app.get('/api/laporan/investor', authenticateToken, requireRole('admin', 'invest
 // 5. ALL REPORT (LAPORAN KESELURUHAN - KHUSUS ADMIN)
 // ===================================================
 app.get('/api/laporan/keseluruhan', authenticateToken, requireRole('admin'), (req, res) => {
-
   const { filter, start, end } = req.query;
   const filteredTx = filterTxByPeriod(db.dataTransaksi, filter, start, end);
 
   let total_pendapatan = 0;
   let total_biaya = 0;
+  let total_bbm_all = 0;
+  let total_servis_all = 0;
+  let total_lainnya_all = 0;
   let total_porsi_pengelola = 0;
   let total_porsi_investor = 0;
 
@@ -474,16 +503,23 @@ app.get('/api/laporan/keseluruhan', authenticateToken, requireRole('admin'), (re
   db.dataMobil.forEach(m => {
     const tx = filteredTx.filter(t => t.mobil_id === m.id);
     const pend = tx.reduce((s, t) => s + (t.tarif || t.tarif_sewa || 0), 0);
-    const bia = tx.reduce((s, t) => s + ((t.biaya_bbm || 0) + (t.biaya_servis || 0) + (t.biaya_lainnya || 0)), 0);
+    const bbm = tx.reduce((s, t) => s + (t.biaya_bbm || 0), 0);
+    const servis = tx.reduce((s, t) => s + (t.biaya_servis || 0), 0);
+    const lainnya = tx.reduce((s, t) => s + (t.biaya_lainnya || 0), 0);
+    const bia = bbm + servis + lainnya;
     const laba_bersih = pend - bia;
 
     if (tx.length > 0) {
       const isInv = m.kepemilikan && m.kepemilikan.toLowerCase() === 'investor';
-      const porsi_inv = isInv ? (laba_bersih > 0 ? laba_bersih * 0.70 : 0) : 0;
-      const porsi_peng = isInv ? (laba_bersih > 0 ? laba_bersih * 0.30 : laba_bersih) : laba_bersih;
+      // Rumus Baru: Jika Investor, JRCTRANS dapat 30% kotor, Investor dapat (70% kotor - Biaya)
+      const porsi_peng = isInv ? (pend * 0.30) : laba_bersih;
+      const porsi_inv = isInv ? ((pend * 0.70) - bia) : 0;
 
       total_pendapatan += pend;
       total_biaya += bia;
+      total_bbm_all += bbm;
+      total_servis_all += servis;
+      total_lainnya_all += lainnya;
       total_porsi_pengelola += porsi_peng;
       total_porsi_investor += porsi_inv;
 
@@ -496,6 +532,9 @@ app.get('/api/laporan/keseluruhan', authenticateToken, requireRole('admin'), (re
         is_investor: isInv,
         total_transaksi: tx.length,
         total_pendapatan: pend,
+        biaya_bbm: bbm,
+        biaya_servis: servis,
+        biaya_lainnya: lainnya,
         total_biaya: bia,
         laba_bersih,
         porsi_pengelola: porsi_peng,
@@ -510,6 +549,9 @@ app.get('/api/laporan/keseluruhan', authenticateToken, requireRole('admin'), (re
       total_transaksi: filteredTx.length,
       total_pendapatan,
       total_biaya,
+      total_bbm: total_bbm_all,
+      total_servis: total_servis_all,
+      total_lainnya: total_lainnya_all,
       total_laba_bersih: total_pendapatan - total_biaya,
       total_porsi_pengelola,
       total_porsi_investor

@@ -379,13 +379,11 @@
             <table class="w-full text-left border-collapse text-xs">
               <thead>
                 <tr class="bg-gray-100 text-gray-700 font-bold border-y border-gray-300">
-                  <th class="p-2.5">Armada</th>
-                  <th class="p-2.5">Kepemilikan</th>
-                  <th class="p-2.5 text-right">Pendapatan</th>
-                  <th class="p-2.5 text-right">Biaya Ops</th>
-                  <th class="p-2.5 text-right">Laba Bersih</th>
-                  <th class="p-2.5 text-right">Porsi Investor (70%)</th>
-                  <th class="p-2.5 text-right">Porsi Pengelola (30%)</th>
+                  <th class="p-2.5 w-1/5">Armada / Plat</th>
+                  <th class="p-2.5 text-right w-1/6">Pendapatan Sewa</th>
+                  <th class="p-2.5 text-left w-1/3">Rincian Biaya Operasional (BBM / Servis / Lainnya)</th>
+                  <th class="p-2.5 text-right w-1/6">Porsi Pengelola (30% Gross)</th>
+                  <th class="p-2.5 text-right w-1/5 bg-purple-50 text-purple-900">Hak Bersih Investor (70% - Biaya)</th>
                 </tr>
               </thead>
               <tbody id="tabel-report-investor" class="divide-y divide-gray-200"></tbody>
@@ -1390,28 +1388,69 @@
         const list = Array.isArray(data) ? data : (data.detail_unit || []);
 
         if (!list || list.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-gray-400 font-medium"><i class="fa-solid fa-inbox text-2xl mb-2 block"></i> Tidak ada transaksi armada investor untuk periode ini.</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-gray-400 font-medium"><i class="fa-solid fa-inbox text-2xl mb-2 block"></i> Tidak ada transaksi armada investor untuk periode ini.</td></tr>`;
           return;
         }
 
         list.forEach(d => {
           const totPend = Number(d.total_pendapatan) || 0;
-          const totBiaya = Number(d.total_biaya) || 0;
-          const laba = Number(d.laba_bersih !== undefined ? d.laba_bersih : (totPend - totBiaya));
-          const porsiInv = Number(d.hak_investor_70 !== undefined ? d.hak_investor_70 : (laba > 0 ? laba * 0.7 : 0));
-          const porsiPeng = Number(d.porsi_pengelola_30 !== undefined ? d.porsi_pengelola_30 : (laba > 0 ? laba * 0.3 : laba));
+          const bbm = Number(d.biaya_bbm) || 0;
+          const servis = Number(d.biaya_servis) || 0;
+          const lainnya = Number(d.biaya_lainnya) || 0;
+          const totBiaya = Number(d.total_biaya) || (bbm + servis + lainnya);
+          
+          const porsiPengelola = Number(d.porsi_pengelola_30 !== undefined ? d.porsi_pengelola_30 : (totPend * 0.30));
+          const hakKotor70 = Number(d.hak_investor_kotor_70 !== undefined ? d.hak_investor_kotor_70 : (totPend * 0.70));
+          const hakBersihInv = Number(d.hak_investor_70 !== undefined ? d.hak_investor_70 : (hakKotor70 - totBiaya));
 
           tbody.innerHTML += `
-            <tr class="hover:bg-gray-50 border-b border-gray-100">
-              <td class="p-2.5 font-bold text-gray-800">${d.nama_mobil} <br><span class="text-[10px] text-gray-500 font-mono">${d.plat_nomor}</span></td>
+            <tr class="hover:bg-gray-50 border-b border-gray-100 align-top">
               <td class="p-2.5">
-                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-700">Investor</span>
+                <p class="font-black text-gray-800 text-sm">${d.nama_mobil}</p>
+                <span class="text-[10px] text-gray-500 font-mono bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200">${d.plat_nomor}</span>
+                <span class="inline-block mt-1 px-1.5 py-0.2 text-[9px] font-bold bg-purple-100 text-purple-700 rounded">Tahun ${d.tahun || '-'}</span>
               </td>
-              <td class="p-2.5 text-right font-semibold text-green-700">${formatRp(totPend)}</td>
-              <td class="p-2.5 text-right font-semibold text-red-600">${formatRp(totBiaya)}</td>
-              <td class="p-2.5 text-right font-semibold text-indigo-700">${formatRp(laba)}</td>
-              <td class="p-2.5 text-right font-bold text-purple-700">${formatRp(porsiInv)}</td>
-              <td class="p-2.5 text-right font-bold text-blue-700">${formatRp(porsiPeng)}</td>
+              
+              <td class="p-2.5 text-right font-bold text-gray-800 text-sm">
+                ${formatRp(totPend)}
+                <br><span class="text-[10px] text-gray-400 font-normal">${d.total_transaksi || 1}x Transaksi</span>
+              </td>
+
+              <!-- RINCIAN BIAYA OPERASIONAL LENGKAP -->
+              <td class="p-2.5">
+                <div class="bg-gray-50 p-2 rounded-lg border border-gray-200 space-y-1 text-xs">
+                  <div class="flex items-center justify-between text-gray-600">
+                    <span><i class="fa-solid fa-gas-pump text-red-500 mr-1"></i> BBM / Bensin:</span>
+                    <span class="font-semibold text-red-600">${formatRp(bbm)}</span>
+                  </div>
+                  <div class="flex items-center justify-between text-gray-600">
+                    <span><i class="fa-solid fa-wrench text-orange-500 mr-1"></i> Servis / Ganti Oli:</span>
+                    <span class="font-semibold text-orange-600">${formatRp(servis)}</span>
+                  </div>
+                  <div class="flex items-center justify-between text-gray-600">
+                    <span><i class="fa-solid fa-box text-blue-500 mr-1"></i> Lainnya (Tol/Cuci/Parkir):</span>
+                    <span class="font-semibold text-gray-700">${formatRp(lainnya)}</span>
+                  </div>
+                  <div class="flex items-center justify-between font-black border-t border-gray-300 pt-1 text-red-700 mt-1">
+                    <span>Total Potongan Biaya:</span>
+                    <span>${formatRp(totBiaya)}</span>
+                  </div>
+                </div>
+              </td>
+
+              <!-- PORSI PENGELOLA JRCTRANS (30% MURNI) -->
+              <td class="p-2.5 text-right font-black text-custom-green text-sm">
+                ${formatRp(porsiPengelola)}
+                <br><span class="text-[10px] text-gray-500 font-medium">30% dari Total Sewa</span>
+              </td>
+
+              <!-- HAK BERSIH INVESTOR (70% - BIAYA) -->
+              <td class="p-2.5 text-right bg-purple-50/50 rounded-r-lg">
+                <span class="font-black text-purple-800 text-base">${formatRp(hakBersihInv)}</span>
+                <p class="text-[10px] text-gray-500 mt-0.5">
+                  <span class="text-purple-600 font-semibold">${formatRp(hakKotor70)} (70%)</span> - <span class="text-red-600 font-semibold">${formatRp(totBiaya)}</span>
+                </p>
+              </td>
             </tr>
           `;
         });
