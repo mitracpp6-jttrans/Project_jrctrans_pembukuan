@@ -426,7 +426,10 @@ app.get('/api/laporan/investor', authenticateToken, requireRole('admin', 'invest
   const rekapInvestor = [];
 
   mobilInvestor.forEach(m => {
-    const tx = filteredTx.filter(t => t.mobil_id === m.id);
+    const tx = filteredTx
+      .filter(t => t.mobil_id === m.id)
+      .sort((a, b) => (a.tanggal || '').localeCompare(b.tanggal || ''));
+
     const pend = tx.reduce((s, t) => s + (t.tarif || t.tarif_sewa || 0), 0);
     const bbm = tx.reduce((s, t) => s + (t.biaya_bbm || 0), 0);
     const servis = tx.reduce((s, t) => s + (t.biaya_servis || 0), 0);
@@ -441,7 +444,7 @@ app.get('/api/laporan/investor', authenticateToken, requireRole('admin', 'invest
       total_servis_all += servis;
       total_lainnya_all += lainnya;
 
-      // Rumus Baru: JRCTRANS ambil 30% murni, Investor ambil (70% omset - Biaya Ops)
+      // Rumus: JRCTRANS ambil 30% murni, Investor ambil (70% omset - Biaya Ops)
       const porsi_pengelola = pend * 0.30;
       const hak_investor_kotor_70 = pend * 0.70;
       const hak_investor_bersih = hak_investor_kotor_70 - bia;

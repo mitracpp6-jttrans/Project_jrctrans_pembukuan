@@ -48,27 +48,39 @@
   "dataTransaksi": [
     {
       "id": 1,
-      "mobil_id": 2,
-      "tanggal": "2026-08-14",
-      "penyewa": "ciewonk",
-      "tarif": 1234,
-      "tarif_sewa": 1234,
-      "biaya_bbm": 123,
-      "biaya_servis": 1234,
-      "biaya_lainnya": 12,
-      "keterangan": "-"
+      "mobil_id": 1,
+      "tanggal": "2026-08-02",
+      "penyewa": "Budi Santoso",
+      "tarif": 400000,
+      "tarif_sewa": 400000,
+      "biaya_bbm": 50000,
+      "biaya_servis": 0,
+      "biaya_lainnya": 0,
+      "keterangan": "Drop Bandara Kertajati"
     },
     {
       "id": 2,
       "mobil_id": 1,
-      "tanggal": "2026-08-17",
-      "penyewa": "Test Investor Formula",
-      "tarif": 1000000,
-      "tarif_sewa": 1000000,
-      "biaya_bbm": 200000,
+      "tanggal": "2026-08-08",
+      "penyewa": "PT Surya",
+      "tarif": 600000,
+      "tarif_sewa": 600000,
+      "biaya_bbm": 100000,
+      "biaya_servis": 0,
+      "biaya_lainnya": 20000,
+      "keterangan": "Sewa Dinas Kantor (Tol)"
+    },
+    {
+      "id": 3,
+      "mobil_id": 1,
+      "tanggal": "2026-08-15",
+      "penyewa": "Hendra Wijaya",
+      "tarif": 500000,
+      "tarif_sewa": 500000,
+      "biaya_bbm": 50000,
       "biaya_servis": 300000,
-      "biaya_lainnya": 50000,
-      "keterangan": "Uji Coba Rumus 70-30 Biaya ke Investor"
+      "biaya_lainnya": 0,
+      "keterangan": "Wisata Cirebon (Ganti Oli & Filter)"
     }
   ]
 }

@@ -375,19 +375,10 @@
               </div>
             </div>
 
-            <!-- Tabel Bagi Hasil PDF -->
-            <table class="w-full text-left border-collapse text-xs">
-              <thead>
-                <tr class="bg-gray-100 text-gray-700 font-bold border-y border-gray-300">
-                  <th class="p-2.5 w-1/5">Armada / Plat</th>
-                  <th class="p-2.5 text-right w-1/6">Pendapatan Sewa</th>
-                  <th class="p-2.5 text-left w-1/3">Rincian Biaya Operasional (BBM / Servis / Lainnya)</th>
-                  <th class="p-2.5 text-right w-1/6">Porsi Pengelola (30% Gross)</th>
-                  <th class="p-2.5 text-right w-1/5 bg-purple-50 text-purple-900">Hak Bersih Investor (70% - Biaya)</th>
-                </tr>
-              </thead>
-              <tbody id="tabel-report-investor" class="divide-y divide-gray-200"></tbody>
-            </table>
+            <!-- KONTEN LAPORAN INVESTOR (MASTER-DETAIL) -->
+            <div id="report-investor-content" class="space-y-6">
+              <!-- Render dinamis via loadReport() -->
+            </div>
 
             <!-- Signature Footer Report Investor -->
             <div class="pt-8 border-t border-gray-200 grid grid-cols-2 text-center text-xs text-gray-700">
@@ -1382,17 +1373,61 @@
 
       try {
         const data = await apiFetch(`/api/laporan/investor${query}`);
-        const tbody = document.getElementById('tabel-report-investor');
-        tbody.innerHTML = '';
+        const container = document.getElementById('report-investor-content');
+        container.innerHTML = '';
 
         const list = Array.isArray(data) ? data : (data.detail_unit || []);
+        const summary = data.summary || {
+          total_pendapatan: 0,
+          total_biaya: 0,
+          total_bbm: 0,
+          total_servis: 0,
+          total_lainnya: 0,
+          total_porsi_pengelola: 0,
+          total_hak_investor: 0
+        };
 
         if (!list || list.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-gray-400 font-medium"><i class="fa-solid fa-inbox text-2xl mb-2 block"></i> Tidak ada transaksi armada investor untuk periode ini.</td></tr>`;
+          container.innerHTML = `
+            <div class="p-12 text-center text-gray-400 font-medium bg-gray-50 rounded-xl border border-dashed border-gray-300">
+              <i class="fa-solid fa-inbox text-3xl mb-2 text-gray-300 block"></i>
+              Tidak ada transaksi armada investor yang tercatat untuk periode ini.
+            </div>
+          `;
           return;
         }
 
-        list.forEach(d => {
+        // 1. BANNER RINGKASAN GLOBAL INVESTOR
+        let html = `
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div class="bg-emerald-50 border border-emerald-200 p-3.5 rounded-xl shadow-xs">
+              <p class="text-[10px] font-bold uppercase tracking-wider text-emerald-700">Total Omset Sewa</p>
+              <h3 class="text-base md:text-lg font-black text-emerald-900 mt-1">${formatRp(summary.total_pendapatan)}</h3>
+              <p class="text-[10px] text-emerald-600 mt-0.5">${list.length} Unit Armada Aktif</p>
+            </div>
+
+            <div class="bg-rose-50 border border-rose-200 p-3.5 rounded-xl shadow-xs">
+              <p class="text-[10px] font-bold uppercase tracking-wider text-rose-700">Total Biaya Operasional</p>
+              <h3 class="text-base md:text-lg font-black text-rose-900 mt-1">${formatRp(summary.total_biaya)}</h3>
+              <p class="text-[9px] text-rose-600 mt-0.5">BBM: ${formatRp(summary.total_bbm)} | Servis: ${formatRp(summary.total_servis)}</p>
+            </div>
+
+            <div class="bg-blue-50 border border-blue-200 p-3.5 rounded-xl shadow-xs">
+              <p class="text-[10px] font-bold uppercase tracking-wider text-blue-700">Hak Pengelola JRCTRANS</p>
+              <h3 class="text-base md:text-lg font-black text-blue-900 mt-1">${formatRp(summary.total_porsi_pengelola)}</h3>
+              <p class="text-[10px] text-blue-600 mt-0.5">30% Gross dari Total Sewa</p>
+            </div>
+
+            <div class="bg-purple-50 border-2 border-purple-300 p-3.5 rounded-xl shadow-xs">
+              <p class="text-[10px] font-black uppercase tracking-wider text-purple-800">Total Hak Bersih Investor</p>
+              <h3 class="text-base md:text-xl font-black text-purple-900 mt-1">${formatRp(summary.total_hak_investor)}</h3>
+              <p class="text-[10px] text-purple-700 font-bold mt-0.5">70% Gross - Biaya Operasional</p>
+            </div>
+          </div>
+        `;
+
+        // 2. RINCIAN PER UNIT MOBIL (MASTER-DETAIL)
+        list.forEach((d, unitIdx) => {
           const totPend = Number(d.total_pendapatan) || 0;
           const bbm = Number(d.biaya_bbm) || 0;
           const servis = Number(d.biaya_servis) || 0;
@@ -1403,57 +1438,109 @@
           const hakKotor70 = Number(d.hak_investor_kotor_70 !== undefined ? d.hak_investor_kotor_70 : (totPend * 0.70));
           const hakBersihInv = Number(d.hak_investor_70 !== undefined ? d.hak_investor_70 : (hakKotor70 - totBiaya));
 
-          tbody.innerHTML += `
-            <tr class="hover:bg-gray-50 border-b border-gray-100 align-top">
-              <td class="p-2.5">
-                <p class="font-black text-gray-800 text-sm">${d.nama_mobil}</p>
-                <span class="text-[10px] text-gray-500 font-mono bg-gray-100 px-1.5 py-0.5 rounded border border-gray-200">${d.plat_nomor}</span>
-                <span class="inline-block mt-1 px-1.5 py-0.2 text-[9px] font-bold bg-purple-100 text-purple-700 rounded">Tahun ${d.tahun || '-'}</span>
-              </td>
-              
-              <td class="p-2.5 text-right font-bold text-gray-800 text-sm">
-                ${formatRp(totPend)}
-                <br><span class="text-[10px] text-gray-400 font-normal">${d.total_transaksi || 1}x Transaksi</span>
-              </td>
+          const txList = d.riwayat_transaksi || [];
 
-              <!-- RINCIAN BIAYA OPERASIONAL LENGKAP -->
-              <td class="p-2.5">
-                <div class="bg-gray-50 p-2 rounded-lg border border-gray-200 space-y-1 text-xs">
-                  <div class="flex items-center justify-between text-gray-600">
-                    <span><i class="fa-solid fa-gas-pump text-red-500 mr-1"></i> BBM / Bensin:</span>
-                    <span class="font-semibold text-red-600">${formatRp(bbm)}</span>
-                  </div>
-                  <div class="flex items-center justify-between text-gray-600">
-                    <span><i class="fa-solid fa-wrench text-orange-500 mr-1"></i> Servis / Ganti Oli:</span>
-                    <span class="font-semibold text-orange-600">${formatRp(servis)}</span>
-                  </div>
-                  <div class="flex items-center justify-between text-gray-600">
-                    <span><i class="fa-solid fa-box text-blue-500 mr-1"></i> Lainnya (Tol/Cuci/Parkir):</span>
-                    <span class="font-semibold text-gray-700">${formatRp(lainnya)}</span>
-                  </div>
-                  <div class="flex items-center justify-between font-black border-t border-gray-300 pt-1 text-red-700 mt-1">
-                    <span>Total Potongan Biaya:</span>
-                    <span>${formatRp(totBiaya)}</span>
+          html += `
+            <div class="border border-gray-200 rounded-xl overflow-hidden shadow-xs bg-white mt-4">
+              <!-- Header Unit Mobil -->
+              <div class="bg-gray-100/80 px-4 py-3 border-b border-gray-200 flex flex-wrap items-center justify-between gap-2">
+                <div class="flex items-center gap-2">
+                  <span class="w-7 h-7 rounded-lg bg-purple-700 text-white flex items-center justify-center font-black text-xs">${unitIdx + 1}</span>
+                  <div>
+                    <h3 class="font-black text-gray-800 text-sm md:text-base flex items-center gap-2">
+                      ${d.nama_mobil}
+                      <span class="text-xs font-mono font-bold bg-white text-gray-700 px-2 py-0.5 rounded border border-gray-300">${d.plat_nomor}</span>
+                    </h3>
+                    <p class="text-[10px] text-gray-500 font-medium">Tahun Pembuatan: ${d.tahun || '-'} | Status: <span class="font-bold text-purple-700">Mitra Investor</span></p>
                   </div>
                 </div>
-              </td>
+                <div class="text-right">
+                  <span class="bg-purple-100 text-purple-800 text-xs font-bold px-2.5 py-1 rounded-full border border-purple-200">
+                    <i class="fa-solid fa-car-side mr-1"></i> ${txList.length}x Perjalanan Rental
+                  </span>
+                </div>
+              </div>
 
-              <!-- PORSI PENGELOLA JRCTRANS (30% MURNI) -->
-              <td class="p-2.5 text-right font-black text-custom-green text-sm">
-                ${formatRp(porsiPengelola)}
-                <br><span class="text-[10px] text-gray-500 font-medium">30% dari Total Sewa</span>
-              </td>
+              <!-- Tabel Rincian Transaksi Tanggal per Tanggal -->
+              <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr class="bg-gray-50 text-gray-600 font-bold border-b border-gray-200">
+                      <th class="p-2.5 text-center w-10">No</th>
+                      <th class="p-2.5 w-24">Tanggal</th>
+                      <th class="p-2.5 w-32">Penyewa</th>
+                      <th class="p-2.5 text-right w-28 text-emerald-800">Tarif Sewa</th>
+                      <th class="p-2.5 text-right w-24 text-red-700">BBM</th>
+                      <th class="p-2.5 text-right w-28 text-orange-700">Servis / Oli</th>
+                      <th class="p-2.5 text-right w-24 text-gray-700">Lainnya</th>
+                      <th class="p-2.5">Keterangan Operasional</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-gray-100">
+          `;
 
-              <!-- HAK BERSIH INVESTOR (70% - BIAYA) -->
-              <td class="p-2.5 text-right bg-purple-50/50 rounded-r-lg">
-                <span class="font-black text-purple-800 text-base">${formatRp(hakBersihInv)}</span>
-                <p class="text-[10px] text-gray-500 mt-0.5">
-                  <span class="text-purple-600 font-semibold">${formatRp(hakKotor70)} (70%)</span> - <span class="text-red-600 font-semibold">${formatRp(totBiaya)}</span>
-                </p>
-              </td>
-            </tr>
+          if (txList.length === 0) {
+            html += `<tr><td colspan="8" class="p-4 text-center text-gray-400">Tidak ada rincian transaksi</td></tr>`;
+          } else {
+            txList.forEach((tx, txIdx) => {
+              const txTarif = Number(tx.tarif_sewa !== undefined ? tx.tarif_sewa : tx.tarif) || 0;
+              const txBbm = Number(tx.biaya_bbm) || 0;
+              const txServis = Number(tx.biaya_servis) || 0;
+              const txLain = Number(tx.biaya_lainnya) || 0;
+
+              html += `
+                <tr class="hover:bg-gray-50 transition">
+                  <td class="p-2.5 text-center font-bold text-gray-400">${txIdx + 1}</td>
+                  <td class="p-2.5 font-medium text-gray-700 whitespace-nowrap">${tx.tanggal || '-'}</td>
+                  <td class="p-2.5 font-bold text-gray-800">${tx.penyewa || '-'}</td>
+                  <td class="p-2.5 text-right font-bold text-emerald-700">${formatRp(txTarif)}</td>
+                  <td class="p-2.5 text-right font-semibold ${txBbm > 0 ? 'text-red-600' : 'text-gray-400'}">${formatRp(txBbm)}</td>
+                  <td class="p-2.5 text-right font-semibold ${txServis > 0 ? 'text-orange-600 font-bold' : 'text-gray-400'}">${formatRp(txServis)}</td>
+                  <td class="p-2.5 text-right font-semibold ${txLain > 0 ? 'text-gray-700' : 'text-gray-400'}">${formatRp(txLain)}</td>
+                  <td class="p-2.5 text-gray-600 italic text-[11px]">${tx.keterangan || '-'}</td>
+                </tr>
+              `;
+            });
+          }
+
+          html += `
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Subtotal Rekapitulasi Finansial Unit -->
+              <div class="bg-gray-50/90 p-4 border-t border-gray-200">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-3 text-xs">
+                  <div class="bg-white p-2.5 rounded-lg border border-gray-200">
+                    <span class="text-gray-500 font-semibold block text-[10px] uppercase">Total Pendapatan Sewa</span>
+                    <span class="text-sm font-black text-emerald-700">${formatRp(totPend)}</span>
+                    <span class="text-[10px] text-gray-400 block">${txList.length}x Perjalanan</span>
+                  </div>
+
+                  <div class="bg-white p-2.5 rounded-lg border border-gray-200">
+                    <span class="text-gray-500 font-semibold block text-[10px] uppercase">Total Pengeluaran Ops</span>
+                    <span class="text-sm font-black text-rose-700">${formatRp(totBiaya)}</span>
+                    <span class="text-[9px] text-gray-500 block">BBM: ${formatRp(bbm)} | Servis: ${formatRp(servis)}</span>
+                  </div>
+
+                  <div class="bg-white p-2.5 rounded-lg border border-gray-200">
+                    <span class="text-gray-500 font-semibold block text-[10px] uppercase">Porsi JRCTRANS (30% Gross)</span>
+                    <span class="text-sm font-black text-blue-700">${formatRp(porsiPengelola)}</span>
+                    <span class="text-[10px] text-gray-400 block">Komisi Pengelolaan</span>
+                  </div>
+
+                  <div class="bg-purple-100/70 p-2.5 rounded-lg border border-purple-300">
+                    <span class="text-purple-900 font-black block text-[10px] uppercase">Hak Bersih Diterima Investor</span>
+                    <span class="text-base font-black text-purple-900">${formatRp(hakBersihInv)}</span>
+                    <span class="text-[10px] text-purple-700 font-semibold block">(${formatRp(hakKotor70)} - ${formatRp(totBiaya)})</span>
+                  </div>
+                </div>
+              </div>
+            </div>
           `;
         });
+
+        container.innerHTML = html;
       } catch (e) {
         console.error(e);
       }
