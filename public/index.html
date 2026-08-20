@@ -1195,7 +1195,7 @@
         tbody.innerHTML = '';
 
         if (!list || list.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-gray-400">Belum ada data armada.</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-gray-400">Belum ada data armada.</td></tr>`;
           return;
         }
 
@@ -1227,6 +1227,13 @@
             </span>
           `;
 
+          // Label teks untuk kolom "Status Saat Ini"
+          const statusTextBadge = `
+            <span class="px-2 py-1 rounded text-xs font-bold ${badgeStatus}">
+              ${statusLabel}
+            </span>
+          `;
+
           tbody.innerHTML += `
             <tr class="hover:bg-gray-50 border-b border-gray-100">
               <td class="p-3 font-bold text-gray-800">${m.nama_mobil}</td>
@@ -1237,8 +1244,9 @@
                   ${isInv ? 'Investor' : 'JRCTRANS'}
                 </span>
               </td>
-              <td class="p-3">${statusDropdownHtml}</td>
+              <td class="p-3">${statusTextBadge}</td>
               <td class="p-3 text-xs text-gray-600">${m.tgl_kembali || '-'}</td>
+              <td class="p-3 text-center">${statusDropdownHtml}</td>
               <td class="p-3 text-center space-x-1">${actionHtml}</td>
             </tr>
           `;
