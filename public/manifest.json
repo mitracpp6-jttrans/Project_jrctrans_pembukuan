@@ -1,7 +1,7 @@
 {
-  "name": "JRCTRANS Majalengka",
-  "short_name": "JRCTRANS",
-  "description": "Sistem Pembukuan & Manajemen Rental Mobil JRCTRANS Majalengka",
+  "name": "JRC Trans Majalengka",
+  "short_name": "JRC Trans",
+  "description": "Sistem Pembukuan & Manajemen Rental Mobil JRC Trans Majalengka",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

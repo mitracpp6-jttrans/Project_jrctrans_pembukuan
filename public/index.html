@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>JRCTRANS Majalengka - Sistem Pembukuan Rental</title>
+  <title>JRC Trans Majalengka - Sistem Pembukuan Rental</title>
   
   <!-- PWA Web App Manifest & Apple iOS Meta Tags -->
   <link rel="manifest" href="/manifest.json">
@@ -11,7 +11,7 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="JRCTRANS">
+  <meta name="apple-mobile-web-app-title" content="JRC Trans">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="icon" type="image/png" href="/icon-192.png">
 
@@ -40,6 +40,17 @@
     .glass-card { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
     .card-float { transition: all 0.2s ease-in-out; }
     .card-float:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.06); }
+
+    /* Mobile Momentum Scrolling & Sleek Scrollbars */
+    .touch-pan-x { -webkit-overflow-scrolling: touch; }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: #F1F5F9; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+
+    /* Safe Area Inset Support for modern smartphones (iPhone / Android) */
+    .safe-pb { padding-bottom: max(5.5rem, calc(env(safe-area-inset-bottom, 0px) + 4.75rem)); }
+    .safe-nav-pb { padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px)); }
   </style>
 </head>
 <body class="bg-gray-100 font-sans text-gray-800 antialiased min-h-screen">
@@ -48,9 +59,18 @@
   <div id="auth-container" class="fixed inset-0 bg-custom-green flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full">
       <div class="text-center mb-6">
-        <div class="w-16 h-16 bg-custom-green text-white rounded-2xl flex items-center justify-center font-black text-2xl mx-auto mb-3 shadow-lg">JRC</div>
-        <h1 class="text-3xl font-black text-custom-green tracking-tight">JRCTRANS</h1>
+        <img src="/logo.png" alt="Logo JRC Trans" class="w-20 h-20 object-contain rounded-2xl mx-auto mb-3 shadow-lg">
+        <h1 class="text-3xl font-black text-custom-green tracking-tight">JRC Trans</h1>
         <p class="text-xs text-gray-500 font-bold uppercase tracking-widest mt-1">Rental Accounting - Majalengka</p>
+      </div>
+
+      <!-- Alert Banner untuk pesan auto-logout / peringatan sesi inaktif -->
+      <div id="login-alert-banner" class="hidden mb-4 p-3.5 rounded-xl border text-xs font-semibold flex items-start gap-2.5 transition-all">
+        <i id="login-alert-icon" class="fa-solid fa-circle-info text-base mt-0.5 shrink-0"></i>
+        <div class="flex-1">
+          <p id="login-alert-title" class="font-bold text-xs"></p>
+          <p id="login-alert-msg" class="text-[11px] mt-0.5 leading-relaxed opacity-95"></p>
+        </div>
       </div>
 
       <form id="form-login" onsubmit="handleLogin(event)" class="space-y-4">
@@ -81,9 +101,9 @@
         <!-- BRAND -->
         <div class="flex items-center justify-between px-2 py-3 mb-6 border-b border-green-800/50">
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center font-black text-custom-green text-xl shadow">JRC</div>
+            <img src="/logo.png" alt="Logo JRC Trans" class="w-10 h-10 object-contain rounded-lg shadow bg-white/10">
             <div>
-              <h1 class="font-black text-lg leading-none tracking-wide">JRCTRANS</h1>
+              <h1 class="font-black text-lg leading-none tracking-wide">JRC Trans</h1>
               <p class="text-[10px] text-green-200 uppercase tracking-widest mt-0.5">Rental Accounting</p>
             </div>
           </div>
@@ -123,38 +143,44 @@
     </aside>
 
     <!-- MAIN CONTENT AREA -->
-    <main class="flex-1 flex flex-col h-screen overflow-y-auto">
+    <main class="flex-1 flex flex-col h-screen overflow-y-auto safe-pb md:pb-0">
       
       <!-- TOP NAVBAR -->
-      <header class="bg-white border-b border-gray-200 px-4 md:px-6 py-3 flex items-center justify-between sticky top-0 z-20 shadow-sm">
-        <div class="flex items-center gap-3">
-          <button onclick="toggleMobileSidebar()" class="md:hidden text-gray-700 hover:text-custom-green text-lg p-1.5 focus:outline-none rounded-lg hover:bg-gray-100" title="Buka Menu">
+      <header class="bg-white/95 backdrop-blur-md border-b border-gray-200 px-3 sm:px-4 md:px-6 py-2.5 sm:py-3 flex items-center justify-between sticky top-0 z-20 shadow-xs">
+        <div class="flex items-center gap-2 sm:gap-3">
+          <button onclick="toggleMobileSidebar()" class="md:hidden text-gray-700 hover:text-custom-green text-base sm:text-lg p-1.5 focus:outline-none rounded-lg hover:bg-gray-100 active:scale-95 transition" title="Buka Menu">
             <i class="fa-solid fa-bars"></i>
           </button>
-          <div class="flex items-center gap-2">
-            <span class="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse"></span>
-            <span class="text-xs font-bold text-gray-600 uppercase tracking-wider hidden sm:inline">JRCTRANS Majalengka System</span>
-            <span class="text-xs font-bold text-gray-600 uppercase tracking-wider sm:hidden">JRCTRANS</span>
+          <div class="flex items-center gap-1.5 sm:gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse shrink-0"></span>
+            <span class="text-xs font-bold text-gray-700 uppercase tracking-wider hidden sm:inline">JRC Trans Majalengka System</span>
+            <span class="text-xs font-extrabold text-custom-green uppercase tracking-wider sm:hidden">JRC Trans</span>
           </div>
         </div>
 
         <!-- RIGHT HEADER: INSTALL PWA + PROFILE DROPDOWN -->
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-1.5 sm:gap-2">
           <!-- Install PWA Button -->
-          <button id="btn-install-pwa" onclick="installPWA()" class="hidden items-center gap-1.5 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-xs transition animate-bounce">
+          <button id="btn-install-pwa" onclick="installPWA()" class="hidden items-center gap-1.5 bg-amber-500 hover:bg-amber-600 text-white text-[11px] sm:text-xs font-bold px-2.5 sm:px-3 py-1.5 rounded-full shadow-xs transition active:scale-95 animate-bounce">
             <i class="fa-solid fa-download"></i> <span class="hidden sm:inline">Install App</span>
           </button>
 
           <!-- Profile Dropdown -->
           <div class="relative">
-            <button onclick="toggleProfileMenu()" class="flex items-center gap-2 bg-gray-50 border border-gray-200 px-3 py-1.5 rounded-full hover:bg-gray-100 transition shadow-sm">
-              <span id="user-role-badge" class="bg-custom-green text-white text-[10px] font-black uppercase px-2 py-0.5 rounded-full">ADMIN</span>
-              <span id="user-display-name" class="text-xs font-bold text-gray-700">Admin</span>
-              <i class="fa-solid fa-chevron-down text-[10px] text-gray-400"></i>
+            <button onclick="toggleProfileMenu()" class="flex items-center gap-1.5 sm:gap-2 bg-gray-50 border border-gray-200 px-2.5 sm:px-3 py-1.5 rounded-full hover:bg-gray-100 active:scale-95 transition shadow-xs">
+              <span id="user-role-badge" class="bg-custom-green text-white text-[9px] sm:text-[10px] font-black uppercase px-2 py-0.5 rounded-full">ADMIN</span>
+              <span id="user-display-name" class="text-xs font-bold text-gray-700 max-w-[80px] sm:max-w-none truncate">Admin</span>
+              <i class="fa-solid fa-chevron-down text-[9px] sm:text-[10px] text-gray-400"></i>
             </button>
 
             <!-- Dropdown Menu -->
-            <div id="profile-menu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 py-1 z-30">
+            <div id="profile-menu" class="hidden absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-xl border border-gray-100 py-1 z-30">
+              <div class="px-4 py-2 border-b border-gray-100 bg-gray-50/70">
+                <p class="text-[9px] text-gray-400 font-bold uppercase tracking-wider">Proteksi Sesi Aktif</p>
+                <p class="text-[11px] text-gray-700 font-bold flex items-center gap-1.5 mt-0.5">
+                  <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Auto-Logout: 15 Menit
+                </p>
+              </div>
               <a href="#" onclick="openCreateUserModal(); return false;" id="menu-create-user" class="px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 flex items-center gap-2">
                 <i class="fa-solid fa-user-plus text-green-700"></i> Buat User Baru
               </a>
@@ -168,97 +194,132 @@
       </header>
 
       <!-- CONTENT BODY -->
-      <div class="p-4 md:p-6 space-y-4">
+      <div class="p-3 sm:p-4 md:p-6 space-y-3.5 sm:space-y-4">
         
         <!-- ================= TAB 1: DASHBOARD ================= -->
-        <section id="tab-dashboard" class="tab-content space-y-4">
-          <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <section id="tab-dashboard" class="tab-content space-y-3.5 sm:space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3">
             <div>
-              <h2 class="text-xl font-black text-gray-800 tracking-tight">Ringkasan Performa & Analitik</h2>
+              <div class="flex items-center gap-2 flex-wrap">
+                <h2 class="text-lg sm:text-xl font-black text-gray-800 tracking-tight">Ringkasan Performa & Analitik</h2>
+                <span id="dashboard-period-badge" class="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-800 text-[10px] sm:text-[11px] font-bold px-2 sm:px-2.5 py-0.5 rounded-full border border-emerald-200 shadow-2xs">
+                  <i class="fa-solid fa-calendar-check text-emerald-600"></i> Siklus: <b id="dashboard-period-label">Bulan Ini</b>
+                </span>
+              </div>
               <p class="text-xs text-gray-500">Pantau performa keuangan harian dan status armada secara real-time.</p>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 flex-wrap">
+              <select id="dashboard-filter-select" onchange="onGlobalFilterChange('dashboard', this.value)" class="text-xs border border-gray-300 rounded-lg px-2.5 py-1.5 font-bold focus:ring-2 focus:ring-green-600 focus:outline-none bg-white shadow-2xs flex-1 sm:flex-none">
+                <optgroup label="Siklus Berjalan">
+                  <option value="bulan_ini" selected>📅 Bulan Ini (Siklus Aktif)</option>
+                  <option value="hari_ini">Hari Ini</option>
+                  <option value="7_hari">7 Hari Terakhir</option>
+                  <option value="all">Semua Waktu (Akumulasi Total)</option>
+                  <option value="custom">Custom Tanggal</option>
+                </optgroup>
+                <optgroup id="optgroup-riwayat-arsip" label="📁 Riwayat Arsip Bulanan (Tutup Buku)">
+                </optgroup>
+              </select>
               <span id="dashboard-refresh-status" class="hidden text-[11px] font-bold text-green-600 bg-green-50 px-2 py-1 rounded-md">
                 <i class="fa-solid fa-circle-check"></i> Data Terkini
               </span>
-              <button onclick="refreshDashboardClick()" id="btn-refresh-dashboard" class="px-3 py-1.5 rounded-lg bg-green-50 text-green-700 font-bold transition flex items-center gap-1.5 hover:bg-green-100 border border-green-200 text-xs shadow-xs">
-                <i id="icon-refresh" class="fa-solid fa-rotate-right"></i> Refresh Data
+              <button onclick="openModalRiwayatArsip()" id="btn-arsip-modal" class="px-2.5 sm:px-3 py-1.5 rounded-lg bg-amber-50 text-amber-800 font-bold transition flex items-center gap-1.5 hover:bg-amber-100 active:scale-95 border border-amber-200 text-xs shadow-xs" title="Riwayat Arsip Bulanan & Tutup Buku">
+                <i class="fa-solid fa-box-archive text-amber-700"></i> <span class="hidden sm:inline">Riwayat Arsip</span>
+              </button>
+              <button type="button" onclick="refreshDashboardClick()" id="btn-refresh-dashboard" class="px-3 py-1.5 rounded-lg bg-green-50 text-green-700 font-bold transition flex items-center gap-1.5 hover:bg-green-100 active:scale-95 border border-green-200 text-xs shadow-xs">
+                <i id="icon-refresh" class="fa-solid fa-rotate-right"></i> Refresh
               </button>
             </div>
           </div>
 
-          <!-- SUMMARY CARDS -->
-          <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div class="bg-white p-4 rounded-xl border border-gray-100 card-float flex items-center justify-between shadow-sm">
-              <div>
-                <p class="text-gray-400 text-[10px] font-bold uppercase tracking-wider">Total Unit Armada</p>
-                <h3 id="card-total-unit" class="text-xl font-black text-gray-800 mt-0.5">0 Unit</h3>
+          <!-- DYNAMIC ARCHIVE REVIEW BANNER -->
+          <div id="dashboard-archive-banner" class="hidden items-center justify-between gap-2 bg-amber-50 border border-amber-200 text-amber-900 px-3 sm:px-4 py-2.5 rounded-xl text-xs shadow-xs">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="w-7 h-7 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+                <i class="fa-solid fa-lock text-sm"></i>
+              </span>
+              <div class="truncate">
+                <span class="font-black text-amber-950">Mode Review Arsip:</span>
+                <span id="archive-banner-text" class="text-amber-800 ml-1">Data periode ini telah diarsipkan resmi dan berstatus tutup buku.</span>
               </div>
-              <div class="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-lg"><i class="fa-solid fa-car font-bold"></i></div>
             </div>
-            <div class="bg-white p-4 rounded-xl border border-gray-100 card-float flex items-center justify-between shadow-sm">
-              <div>
-                <p class="text-gray-400 text-[10px] font-bold uppercase tracking-wider">Total Pendapatan</p>
-                <h3 id="card-pendapatan" class="text-lg font-extrabold text-green-700 mt-0.5">Rp 0</h3>
+            <button onclick="switchDashboardToBulanIni()" class="text-[11px] font-extrabold bg-amber-200/80 hover:bg-amber-200 text-amber-950 px-3 py-1.5 rounded-lg transition active:scale-95 shrink-0">
+              <i class="fa-solid fa-rotate-left mr-1"></i> Kembali ke Siklus Aktif
+            </button>
+          </div>
+
+          <!-- SUMMARY CARDS (2x2 di Layar Ponsel, 4 Kolom di Layar Lebar) -->
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
+            <div class="bg-white p-3 sm:p-4 rounded-xl border border-gray-100 card-float flex items-center justify-between shadow-xs">
+              <div class="min-w-0 pr-1">
+                <p class="text-gray-400 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider truncate">Total Unit</p>
+                <h3 id="card-total-unit" class="text-base sm:text-xl font-black text-gray-800 mt-0.5 truncate">0 Unit</h3>
               </div>
-              <div class="w-10 h-10 rounded-lg bg-green-50 text-green-600 flex items-center justify-center text-lg"><i class="fa-solid fa-wallet"></i></div>
+              <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-sm sm:text-lg shrink-0"><i class="fa-solid fa-car font-bold"></i></div>
             </div>
-            <div class="bg-white p-4 rounded-xl border border-gray-100 card-float flex items-center justify-between shadow-sm">
-              <div>
-                <p class="text-gray-400 text-[10px] font-bold uppercase tracking-wider">Total Biaya Operasional</p>
-                <h3 id="card-biaya" class="text-lg font-extrabold text-red-600 mt-0.5">Rp 0</h3>
+            <div class="bg-white p-3 sm:p-4 rounded-xl border border-gray-100 card-float flex items-center justify-between shadow-xs">
+              <div class="min-w-0 pr-1">
+                <p class="text-gray-400 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider truncate" id="lbl-dash-pendapatan">Omset (Bulan Ini)</p>
+                <h3 id="card-pendapatan" class="text-sm sm:text-lg font-extrabold text-green-700 mt-0.5 truncate">Rp 0</h3>
               </div>
-              <div class="w-10 h-10 rounded-lg bg-red-50 text-red-600 flex items-center justify-center text-lg"><i class="fa-solid fa-receipt"></i></div>
+              <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-green-50 text-green-600 flex items-center justify-center text-sm sm:text-lg shrink-0"><i class="fa-solid fa-wallet"></i></div>
             </div>
-            <div class="bg-white p-4 rounded-xl border border-gray-100 card-float flex items-center justify-between shadow-sm">
-              <div>
-                <p class="text-gray-400 text-[10px] font-bold uppercase tracking-wider">Keuntungan Bersih</p>
-                <h3 id="card-keuntungan" class="text-lg font-extrabold text-indigo-700 mt-0.5">Rp 0</h3>
+            <div class="bg-white p-3 sm:p-4 rounded-xl border border-gray-100 card-float flex items-center justify-between shadow-xs">
+              <div class="min-w-0 pr-1">
+                <p class="text-gray-400 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider truncate" id="lbl-dash-biaya">Biaya Ops (Bulan Ini)</p>
+                <h3 id="card-biaya" class="text-sm sm:text-lg font-extrabold text-red-600 mt-0.5 truncate">Rp 0</h3>
               </div>
-              <div class="w-10 h-10 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center text-lg"><i class="fa-solid fa-chart-line"></i></div>
+              <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-red-50 text-red-600 flex items-center justify-center text-sm sm:text-lg shrink-0"><i class="fa-solid fa-receipt"></i></div>
+            </div>
+            <div class="bg-white p-3 sm:p-4 rounded-xl border border-gray-100 card-float flex items-center justify-between shadow-xs">
+              <div class="min-w-0 pr-1">
+                <p class="text-gray-400 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider truncate" id="lbl-dash-keuntungan">Keuntungan (Bulan Ini)</p>
+                <h3 id="card-keuntungan" class="text-sm sm:text-lg font-extrabold text-indigo-700 mt-0.5 truncate">Rp 0</h3>
+              </div>
+              <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center text-sm sm:text-lg shrink-0"><i class="fa-solid fa-chart-line"></i></div>
             </div>
           </div>
 
           <!-- WIDGET REALTIME STATUS ARMADA -->
-          <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+          <div class="bg-white p-3 sm:p-4 rounded-xl border border-gray-100 shadow-xs">
             <div class="flex items-center justify-between mb-3">
-              <h3 class="text-xs font-black text-gray-800 uppercase tracking-wider flex items-center gap-2">
+              <h3 class="text-xs font-black text-gray-800 uppercase tracking-wider flex items-center gap-1.5 sm:gap-2">
                 <i class="fa-solid fa-clock-rotate-left text-green-700"></i> Status & Pergerakan Unit Real-Time
               </h3>
-              <span class="text-[10px] bg-green-100 text-green-700 px-2.5 py-0.5 rounded-full font-bold">● Live System</span>
+              <span class="text-[9px] sm:text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold">● Live System</span>
             </div>
-            <div id="status-armada-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3"></div>
+            <div id="status-armada-container" class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3"></div>
           </div>
 
           <!-- CHARTS GRID -->
-          <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
-            <div class="lg:col-span-5 bg-white p-4 rounded-xl border border-gray-100 card-float flex flex-col justify-between shadow-sm">
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-3.5 sm:gap-4">
+            <div class="lg:col-span-5 bg-white p-3 sm:p-4 rounded-xl border border-gray-100 card-float flex flex-col justify-between shadow-xs">
               <div class="flex items-center justify-between mb-2">
                 <h3 class="text-xs font-extrabold text-gray-800 flex items-center gap-1.5">
                   <i class="fa-solid fa-chart-line text-green-700"></i> Tren Pendapatan & Biaya Harian
                 </h3>
               </div>
-              <div class="h-52 w-full relative">
+              <div class="h-48 sm:h-52 w-full relative">
                 <canvas id="lineChartHarian"></canvas>
               </div>
             </div>
-            <div class="lg:col-span-4 bg-white p-4 rounded-xl border border-gray-100 card-float flex flex-col justify-between shadow-sm">
+            <div class="lg:col-span-4 bg-white p-3 sm:p-4 rounded-xl border border-gray-100 card-float flex flex-col justify-between shadow-xs">
               <div class="flex items-center justify-between mb-2">
                 <h3 class="text-xs font-extrabold text-gray-800 flex items-center gap-1.5">
                   <i class="fa-solid fa-chart-bar text-green-700"></i> Pendapatan per Unit
                 </h3>
               </div>
-              <div class="h-52 w-full relative">
+              <div class="h-48 sm:h-52 w-full relative">
                 <canvas id="barChart"></canvas>
               </div>
             </div>
-            <div class="lg:col-span-3 bg-white p-4 rounded-xl border border-gray-100 card-float flex flex-col justify-between items-center shadow-sm">
+            <div class="lg:col-span-3 bg-white p-3 sm:p-4 rounded-xl border border-gray-100 card-float flex flex-col justify-between items-center shadow-xs">
               <div class="w-full text-left mb-2">
                 <h3 class="text-xs font-extrabold text-gray-800 flex items-center gap-1.5">
                   <i class="fa-solid fa-chart-pie text-purple-700"></i> Bagi Hasil
                 </h3>
               </div>
-              <div class="h-52 w-full flex items-center justify-center relative">
+              <div class="h-48 sm:h-52 w-full flex items-center justify-center relative">
                 <canvas id="pieChart"></canvas>
               </div>
             </div>
@@ -266,86 +327,123 @@
         </section>
 
         <!-- ================= TAB 2: KELOLA ARMADA ================= -->
-        <section id="tab-armada" class="tab-content hidden space-y-4">
-          <div class="flex items-center justify-between">
+        <section id="tab-armada" class="tab-content hidden space-y-3.5 sm:space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
             <div>
-              <h2 class="text-xl font-black text-gray-800">Manajemen Armada & Status Operasional</h2>
+              <h2 class="text-lg sm:text-xl font-black text-gray-800">Manajemen Armada & Status Operasional</h2>
               <p class="text-xs text-gray-500">Tambah armada baru dan ubah status sewa/servis secara langsung.</p>
             </div>
-            <button onclick="openModalArmada()" id="btn-tambah-armada" class="bg-custom-green text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-custom-hover transition flex items-center gap-1.5 shadow-sm">
+            <button onclick="openModalArmada()" id="btn-tambah-armada" class="w-full sm:w-auto justify-center bg-custom-green text-white text-xs font-bold px-4 py-2.5 rounded-lg hover:bg-custom-hover active:scale-95 transition flex items-center gap-1.5 shadow-sm">
               <i class="fa-solid fa-plus"></i> Tambah Armada
             </button>
           </div>
 
-          <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-            <table class="w-full text-left border-collapse text-xs">
-              <thead>
-                <tr class="bg-gray-50 border-b border-gray-200 text-gray-500 font-bold uppercase text-xs">
-                  <th class="p-3">Mobil</th>
-                  <th class="p-3">Plat Number</th>
-                  <th class="p-3">Tahun</th>
-                  <th class="p-3">Kepemilikan</th>
-                  <th class="p-3">Status Saat Ini</th>
-                  <th class="p-3">Estimasi Kembali/Selesai</th>
-                  <th class="p-3 text-center">Ubah Status Cepat</th>
-                  <th class="p-3 text-center">Aksi</th>
-                </tr>
-              </thead>
-              <tbody id="tabel-armada" class="divide-y divide-gray-100"></tbody>
-            </table>
+          <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-xs">
+            <div class="overflow-x-auto w-full touch-pan-x">
+              <table class="w-full text-left border-collapse text-xs min-w-[620px]">
+                <thead>
+                  <tr class="bg-gray-50 border-b border-gray-200 text-gray-500 font-bold uppercase tracking-wider text-[10px] sm:text-xs">
+                    <th class="p-2.5 sm:p-3">Mobil</th>
+                    <th class="p-2.5 sm:p-3">Plat Nomor</th>
+                    <th class="p-2.5 sm:p-3">Tahun</th>
+                    <th class="p-2.5 sm:p-3">Kepemilikan</th>
+                    <th class="p-2.5 sm:p-3">Status Saat Ini</th>
+                    <th class="p-2.5 sm:p-3">Estimasi Kembali</th>
+                    <th class="p-2.5 sm:p-3 text-center">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="tabel-armada" class="divide-y divide-gray-100"></tbody>
+              </table>
+            </div>
           </div>
         </section>
 
         <!-- ================= TAB 3: INPUT TRANSAKSI ================= -->
-        <section id="tab-transaksi" class="tab-content hidden space-y-4">
-          <div class="flex items-center justify-between">
+        <section id="tab-transaksi" class="tab-content hidden space-y-3.5 sm:space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
             <div>
-              <h2 class="text-xl font-black text-gray-800">Catatan Transaksi Operasional</h2>
+              <div class="flex items-center gap-2 flex-wrap">
+                <h2 class="text-lg sm:text-xl font-black text-gray-800">Catatan Transaksi Operasional</h2>
+                <span id="transaksi-period-badge" class="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-800 text-[10px] sm:text-[11px] font-bold px-2 sm:px-2.5 py-0.5 rounded-full border border-emerald-200 shadow-2xs">
+                  <i class="fa-solid fa-calendar-check text-emerald-600"></i> Siklus: <b id="transaksi-period-label">Bulan Ini</b>
+                </span>
+              </div>
               <p class="text-xs text-gray-500">Input transaksi sewa, BBM, servis, dan pengeluaran armada.</p>
             </div>
-            <button onclick="openModalTransaksi()" id="btn-tambah-transaksi" class="bg-custom-green text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-custom-hover transition flex items-center gap-1.5 shadow-sm">
-              <i class="fa-solid fa-plus"></i> Input Transaksi Baru
+            <div class="flex items-center gap-2 flex-wrap">
+              <select id="transaksi-filter-select" onchange="onGlobalFilterChange('transaksi', this.value)" class="text-xs border border-gray-300 rounded-lg px-2.5 py-1.5 font-bold focus:ring-2 focus:ring-green-600 focus:outline-none bg-white shadow-2xs flex-1 sm:flex-none">
+                <optgroup label="Siklus Berjalan">
+                  <option value="bulan_ini" selected>📅 Bulan Ini (Siklus Baru)</option>
+                  <option value="hari_ini">Hari Ini</option>
+                  <option value="7_hari">7 Hari Terakhir</option>
+                  <option value="all">Semua Transaksi (Akumulasi)</option>
+                  <option value="custom">Custom Tanggal</option>
+                </optgroup>
+                <optgroup id="optgroup-transaksi-arsip" label="📁 Riwayat Arsip Bulanan (Tutup Buku)">
+                </optgroup>
+              </select>
+              <button onclick="openModalTransaksi()" id="btn-tambah-transaksi" class="w-full sm:w-auto justify-center bg-custom-green text-white text-xs font-bold px-4 py-2.5 rounded-lg hover:bg-custom-hover active:scale-95 transition flex items-center gap-1.5 shadow-sm">
+                <i class="fa-solid fa-plus"></i> Input Transaksi Baru
+              </button>
+            </div>
+          </div>
+
+          <!-- DYNAMIC ARCHIVE REVIEW BANNER FOR TRANSAKSI -->
+          <div id="transaksi-archive-banner" class="hidden items-center justify-between gap-2 bg-amber-50 border border-amber-200 text-amber-900 px-3 sm:px-4 py-2.5 rounded-xl text-xs shadow-xs">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="w-7 h-7 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+                <i class="fa-solid fa-lock text-sm"></i>
+              </span>
+              <div class="truncate">
+                <span class="font-black text-amber-950">Mode Review Arsip Transaksi:</span>
+                <span id="transaksi-archive-banner-text" class="text-amber-800 ml-1">Menampilkan transaksi resmi periode arsip yang telah dibekukan.</span>
+              </div>
+            </div>
+            <button onclick="switchTransaksiToBulanIni()" class="text-[11px] font-extrabold bg-amber-200/80 hover:bg-amber-200 text-amber-950 px-3 py-1.5 rounded-lg transition active:scale-95 shrink-0">
+              <i class="fa-solid fa-rotate-left mr-1"></i> Kembali ke Bulan Baru
             </button>
           </div>
 
-          <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-            <table class="w-full text-left border-collapse text-xs">
-              <thead>
-                <tr class="bg-gray-50 border-b border-gray-200 text-gray-500 font-bold uppercase tracking-wider">
-                  <th class="p-3">Tanggal</th>
-                  <th class="p-3">Armada / Plat</th>
-                  <th class="p-3">Penyewa</th>
-                  <th class="p-3">Tarif (Sewa)</th>
-                  <th class="p-3">Total Biaya Operasional</th>
-                  <th class="p-3">Keterangan</th>
-                  <th class="p-3 text-center">Aksi</th>
-                </tr>
-              </thead>
-              <tbody id="tabel-transaksi" class="divide-y divide-gray-100"></tbody>
-            </table>
+          <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-xs">
+            <div class="overflow-x-auto w-full touch-pan-x">
+              <table class="w-full text-left border-collapse text-xs min-w-[660px]">
+                <thead>
+                  <tr class="bg-gray-50 border-b border-gray-200 text-gray-500 font-bold uppercase tracking-wider text-[10px] sm:text-xs">
+                    <th class="p-2.5 sm:p-3">Tanggal</th>
+                    <th class="p-2.5 sm:p-3">Armada / Plat</th>
+                    <th class="p-2.5 sm:p-3">Penyewa</th>
+                    <th class="p-2.5 sm:p-3">Tarif Sewa</th>
+                    <th class="p-2.5 sm:p-3">Total Biaya Ops</th>
+                    <th class="p-2.5 sm:p-3">Keterangan</th>
+                    <th class="p-2.5 sm:p-3 text-center">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="tabel-transaksi" class="divide-y divide-gray-100"></tbody>
+              </table>
+            </div>
           </div>
         </section>
 
         <!-- ================= TAB 4: REPORT INVESTOR ================= -->
-        <section id="tab-report" class="tab-content hidden space-y-4">
-          <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <section id="tab-report" class="tab-content hidden space-y-3.5 sm:space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
             <div>
-              <h2 class="text-xl font-black text-gray-800">Laporan Bagi Hasil Investor</h2>
+              <h2 class="text-lg sm:text-xl font-black text-gray-800">Laporan Bagi Hasil Investor</h2>
               <p class="text-xs text-gray-500">Laporan khusus unit mobil investor (Skema 70% Investor : 30% Pengelola).</p>
             </div>
             <div class="flex items-center gap-2">
-              <button onclick="downloadPDFReport()" class="bg-red-600 text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-red-700 transition flex items-center gap-2 shadow-sm">
+              <button onclick="downloadPDFReport()" class="w-full sm:w-auto justify-center bg-red-600 text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-red-700 active:scale-95 transition flex items-center gap-2 shadow-sm">
                 <i class="fa-solid fa-file-pdf"></i> Download PDF
               </button>
             </div>
           </div>
 
           <!-- FILTER BAR LAPORAN -->
-          <div class="bg-white p-3 rounded-xl border border-gray-200 shadow-sm flex flex-wrap items-center gap-3">
+          <div class="bg-white p-3 rounded-xl border border-gray-200 shadow-xs flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
             <!-- Pilihan Unit Mobil Investor -->
-            <div class="flex items-center gap-2">
-              <span class="text-xs font-bold text-gray-600"><i class="fa-solid fa-car text-purple-600 mr-1"></i> Pilih Unit:</span>
-              <select id="report-filter-mobil" onchange="loadReport()" class="border rounded-lg px-2.5 py-1.5 text-xs font-bold text-purple-900 bg-purple-50/50 border-purple-200 focus:ring-2 focus:ring-purple-600 focus:outline-none">
+            <div class="flex items-center gap-2 w-full sm:w-auto">
+              <span class="text-xs font-bold text-gray-600 shrink-0"><i class="fa-solid fa-car text-purple-600 mr-1"></i> Pilih Unit:</span>
+              <select id="report-filter-mobil" onchange="loadReport()" class="border rounded-lg px-2.5 py-1.5 text-xs font-bold text-purple-900 bg-purple-50/50 border-purple-200 focus:ring-2 focus:ring-purple-600 focus:outline-none flex-1 sm:flex-none">
                 <option value="all">🚗 Semua Unit Investor</option>
               </select>
             </div>
@@ -353,33 +451,37 @@
             <div class="h-4 w-px bg-gray-300 hidden md:block"></div>
 
             <!-- Pilihan Periode Waktu -->
-            <div class="flex items-center gap-2">
-              <span class="text-xs font-bold text-gray-600"><i class="fa-solid fa-filter mr-1 text-custom-green"></i> Periode:</span>
-              <select id="report-filter-type" onchange="onReportFilterChange()" class="border rounded-lg px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
-                <option value="all">Semua Waktu (Realtime)</option>
-                <option value="hari_ini">Hari Ini</option>
-                <option value="7_hari">7 Hari Terakhir</option>
-                <option value="bulan_ini">Bulan Ini</option>
-                <option value="custom">Custom Tanggal</option>
+            <div class="flex items-center gap-2 w-full sm:w-auto">
+              <span class="text-xs font-bold text-gray-600 shrink-0"><i class="fa-solid fa-filter mr-1 text-custom-green"></i> Periode:</span>
+              <select id="report-filter-type" onchange="onReportFilterChange()" class="border rounded-lg px-2.5 py-1.5 text-xs font-bold focus:ring-2 focus:ring-green-600 focus:outline-none flex-1 sm:flex-none">
+                <optgroup label="Siklus Berjalan">
+                  <option value="bulan_ini" selected>📅 Bulan Ini (Siklus Berjalan)</option>
+                  <option value="hari_ini">Hari Ini</option>
+                  <option value="7_hari">7 Hari Terakhir</option>
+                  <option value="all">Semua Waktu (Akumulasi Total)</option>
+                  <option value="custom">Custom Tanggal</option>
+                </optgroup>
+                <optgroup id="optgroup-report-arsip" label="📁 Riwayat Arsip Bulanan (Tutup Buku)">
+                </optgroup>
               </select>
             </div>
 
-            <div id="custom-date-inputs" class="hidden flex items-center gap-2">
-              <input type="date" id="report-start" class="border rounded-lg px-2.5 py-1.5 text-xs focus:outline-none">
+            <div id="custom-date-inputs" class="hidden flex items-center gap-2 w-full sm:w-auto">
+              <input type="date" id="report-start" class="border rounded-lg px-2 py-1 text-xs focus:outline-none flex-1">
               <span class="text-xs font-bold text-gray-500">s/d</span>
-              <input type="date" id="report-end" class="border rounded-lg px-2.5 py-1.5 text-xs focus:outline-none">
-              <button onclick="loadReport()" class="bg-custom-green text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-custom-hover">Terapkan</button>
+              <input type="date" id="report-end" class="border rounded-lg px-2 py-1 text-xs focus:outline-none flex-1">
+              <button type="button" onclick="applyGlobalCustomDates(document.getElementById('report-start').value, document.getElementById('report-end').value)" class="bg-custom-green text-white px-3 py-1 rounded-lg text-xs font-bold hover:bg-custom-hover active:scale-95">Terapkan</button>
             </div>
           </div>
 
-          <div id="pdf-container" class="bg-white p-8 rounded-xl border border-gray-200 shadow-sm space-y-6">
+          <div id="pdf-container" class="bg-white p-3.5 sm:p-6 md:p-8 rounded-xl border border-gray-200 shadow-xs space-y-5 sm:space-y-6">
             <div class="border-b-2 border-custom-green pb-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div class="flex items-center gap-3">
-                <div class="w-12 h-12 bg-custom-green text-white rounded-xl flex items-center justify-center font-black text-xl shadow-md">JRC</div>
+                <img src="/logo.png" alt="Logo JRC Trans" class="w-12 h-12 object-contain rounded-xl shadow-md">
                 <div>
-                  <h1 class="text-2xl font-black text-custom-green tracking-tight leading-none">JRCTRANS MAJALENGKA</h1>
+                  <h1 class="text-2xl font-black text-custom-green tracking-tight leading-none">JRC TRANS MAJALENGKA</h1>
                   <p class="text-[11px] font-bold text-gray-700 mt-1 flex items-center gap-1">
-                    <i class="fa-solid fa-location-dot text-red-600"></i> Samping SPBU, Jl. Raya Cirebon - Bandung, Burujul Wetan, Kec. Jatiwangi, Kab. Majalengka, Jawa Barat 45454
+                    <i class="fa-solid fa-location-dot text-red-600"></i> Samping SPBU, Jl. Raya Cirebon - Bandung, Burujul Wetan, Kec. Jatiwangi, Kabupaten Majalengka, Jawa Barat 45454
                   </p>
                   <p class="text-[10px] text-gray-500 font-medium">Laporan Hasil Pengelolaan Armada & Pembagian Keuntungan Investor (Skema 70:30)</p>
                 </div>
@@ -403,9 +505,9 @@
                 <p class="font-bold border-b border-gray-400 inline-block px-8 pb-1">( ......................................... )</p>
               </div>
               <div>
-                <p class="font-semibold text-gray-500">Pengelola JRCTRANS Majalengka,</p>
+                <p class="font-semibold text-gray-500">Pengelola JRC Trans Majalengka,</p>
                 <div class="h-16"></div>
-                <p class="font-bold border-b border-gray-400 inline-block px-8 pb-1">( Manajemen JRCTRANS )</p>
+                <p class="font-bold border-b border-gray-400 inline-block px-8 pb-1">( Manajemen JRC Trans )</p>
               </div>
             </div>
           </div>
@@ -419,94 +521,147 @@
                 <h2 class="text-xl font-black text-gray-800">Laporan Keuangan Keseluruhan (All Report)</h2>
                 <span class="bg-amber-100 text-amber-800 text-[10px] font-black px-2 py-0.5 rounded-full border border-amber-300">ADMIN ONLY</span>
               </div>
-              <p class="text-xs text-gray-500">Rekapitulasi total seluruh omset, pengeluaran, dan performa semua unit (JRCTRANS & Investor).</p>
+              <p class="text-xs text-gray-500" id="allreport-main-desc">Rekapitulasi omset, pengeluaran, dan performa per kategori unit armada.</p>
             </div>
             <div class="flex items-center gap-2">
-              <button onclick="downloadPDFAllReport()" class="bg-red-600 text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-red-700 transition flex items-center gap-2 shadow-sm">
+              <button onclick="downloadPDFAllReport()" id="btn-download-allreport" class="bg-red-600 text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-red-700 transition flex items-center gap-2 shadow-sm">
                 <i class="fa-solid fa-file-pdf"></i> Download PDF All Report
               </button>
             </div>
           </div>
 
           <!-- FILTER BAR ALL REPORT -->
-          <div class="bg-white p-3 rounded-xl border border-gray-200 shadow-sm flex flex-wrap items-center gap-3">
-            <span class="text-xs font-bold text-gray-600"><i class="fa-solid fa-filter mr-1 text-custom-green"></i> Filter Periode:</span>
-            <select id="allreport-filter-type" onchange="onAllReportFilterChange()" class="border rounded-lg px-2.5 py-1.5 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
-              <option value="all">Semua Waktu (Realtime)</option>
-              <option value="hari_ini">Hari Ini</option>
-              <option value="7_hari">7 Hari Terakhir</option>
-              <option value="bulan_ini">Bulan Ini</option>
-              <option value="custom">Custom Tanggal</option>
-            </select>
-            <div id="allreport-custom-date-inputs" class="hidden flex items-center gap-2">
-              <input type="date" id="allreport-start" class="border rounded-lg px-2.5 py-1.5 text-xs focus:outline-none">
-              <span class="text-xs font-bold text-gray-500">s/d</span>
-              <input type="date" id="allreport-end" class="border rounded-lg px-2.5 py-1.5 text-xs focus:outline-none">
-              <button onclick="loadAllReport()" class="bg-custom-green text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-custom-hover">Terapkan</button>
+          <div class="bg-white p-3 rounded-xl border border-gray-200 shadow-sm flex flex-wrap items-center justify-between gap-3">
+            <div class="flex flex-wrap items-center gap-3">
+              <!-- PILIH UNIT MOBIL -->
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-gray-600"><i class="fa-solid fa-car text-purple-600 mr-1"></i> Pilih Unit:</span>
+                <select id="allreport-filter-mobil" onchange="loadAllReport()" class="border rounded-lg px-2.5 py-1.5 text-xs font-bold text-purple-900 bg-purple-50/50 border-purple-200 focus:ring-2 focus:ring-purple-600 focus:outline-none">
+                  <option value="all">🚗 Semua Unit Armada</option>
+                </select>
+              </div>
+
+              <div class="h-4 w-px bg-gray-300 hidden sm:block"></div>
+
+              <!-- FILTER PERIODE -->
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="text-xs font-bold text-gray-600"><i class="fa-solid fa-filter mr-1 text-custom-green"></i> Periode:</span>
+                <select id="allreport-filter-type" onchange="onAllReportFilterChange()" class="border rounded-lg px-2.5 py-1.5 text-xs font-bold focus:ring-2 focus:ring-green-600 focus:outline-none">
+                  <optgroup label="Siklus Berjalan">
+                    <option value="bulan_ini" selected>📅 Bulan Ini (Siklus Berjalan)</option>
+                    <option value="hari_ini">Hari Ini</option>
+                    <option value="7_hari">7 Hari Terakhir</option>
+                    <option value="all">Semua Waktu (Akumulasi Total)</option>
+                    <option value="custom">Custom Tanggal</option>
+                  </optgroup>
+                  <optgroup id="optgroup-allreport-arsip" label="📁 Riwayat Arsip Bulanan (Tutup Buku)">
+                  </optgroup>
+                </select>
+                <div id="allreport-custom-date-inputs" class="hidden flex items-center gap-2">
+                  <input type="date" id="allreport-start" class="border rounded-lg px-2.5 py-1.5 text-xs focus:outline-none">
+                  <span class="text-xs font-bold text-gray-500">s/d</span>
+                  <input type="date" id="allreport-end" class="border rounded-lg px-2.5 py-1.5 text-xs focus:outline-none">
+                  <button type="button" onclick="applyGlobalCustomDates(document.getElementById('allreport-start').value, document.getElementById('allreport-end').value)" class="bg-custom-green text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-custom-hover">Terapkan</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- FILTER KATEGORI UNIT -->
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="text-xs font-bold text-gray-600"><i class="fa-solid fa-car-side mr-1 text-custom-green"></i> Kategori Unit:</span>
+              <div class="inline-flex rounded-lg border border-gray-200 p-0.5 bg-gray-100 text-xs font-bold shadow-2xs">
+                <button type="button" onclick="setAllReportUnitCategory('all')" id="btn-unit-all" class="px-3 py-1.5 rounded-md transition bg-custom-green text-white shadow-xs">
+                  Semua Unit
+                </button>
+                <button type="button" onclick="setAllReportUnitCategory('investor')" id="btn-unit-investor" class="px-3 py-1.5 rounded-md transition text-gray-600 hover:text-custom-green">
+                  Unit Investor (70:30)
+                </button>
+                <button type="button" onclick="setAllReportUnitCategory('sendiri')" id="btn-unit-sendiri" class="px-3 py-1.5 rounded-md transition text-gray-600 hover:text-custom-green">
+                  Unit Milik JRC Trans
+                </button>
+              </div>
             </div>
           </div>
 
           <!-- SUMMARY ALL REPORT -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
-            <div class="bg-white p-3.5 rounded-xl border border-gray-200 shadow-xs">
-              <p class="text-gray-400 text-[10px] font-bold uppercase tracking-wider">Total Omset / Pendapatan</p>
-              <h4 id="allreport-summary-pendapatan" class="text-base font-black text-green-700 mt-0.5">Rp 0</h4>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3">
+            <div class="bg-white p-3 sm:p-3.5 rounded-xl border border-gray-200 shadow-xs">
+              <p class="text-gray-400 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider truncate" id="lbl-allreport-pendapatan">Total Omset</p>
+              <h4 id="allreport-summary-pendapatan" class="text-sm sm:text-base font-black text-green-700 mt-0.5 truncate">Rp 0</h4>
             </div>
-            <div class="bg-white p-3.5 rounded-xl border border-gray-200 shadow-xs">
-              <p class="text-gray-400 text-[10px] font-bold uppercase tracking-wider">Total Biaya Operasional</p>
-              <h4 id="allreport-summary-biaya" class="text-base font-black text-red-600 mt-0.5">Rp 0</h4>
+            <div class="bg-white p-3 sm:p-3.5 rounded-xl border border-gray-200 shadow-xs">
+              <p class="text-gray-400 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider truncate" id="lbl-allreport-biaya">Total Biaya Ops</p>
+              <h4 id="allreport-summary-biaya" class="text-sm sm:text-base font-black text-red-600 mt-0.5 truncate">Rp 0</h4>
             </div>
-            <div class="bg-white p-3.5 rounded-xl border border-gray-200 shadow-xs">
-              <p class="text-gray-400 text-[10px] font-bold uppercase tracking-wider">Keuntungan Bersih Total</p>
-              <h4 id="allreport-summary-laba" class="text-base font-black text-indigo-700 mt-0.5">Rp 0</h4>
+            <div class="bg-white p-3 sm:p-3.5 rounded-xl border border-gray-200 shadow-xs">
+              <p class="text-gray-400 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider truncate" id="lbl-allreport-laba">Keuntungan Bersih</p>
+              <h4 id="allreport-summary-laba" class="text-sm sm:text-base font-black text-indigo-700 mt-0.5 truncate">Rp 0</h4>
             </div>
-            <div class="bg-white p-3.5 rounded-xl border border-gray-200 shadow-xs">
-              <p class="text-gray-400 text-[10px] font-bold uppercase tracking-wider">Hak Bersih JRCTRANS</p>
-              <h4 id="allreport-summary-pengelola" class="text-base font-black text-custom-green mt-0.5">Rp 0</h4>
+            <div class="bg-white p-3 sm:p-3.5 rounded-xl border border-gray-200 shadow-xs">
+              <p class="text-gray-400 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider truncate" id="lbl-allreport-pengelola">Hak JRC Trans</p>
+              <h4 id="allreport-summary-pengelola" class="text-sm sm:text-base font-black text-custom-green mt-0.5 truncate">Rp 0</h4>
             </div>
           </div>
 
           <!-- PDF CONTAINER ALL REPORT -->
-          <div id="allreport-pdf-container" class="bg-white p-8 rounded-xl border border-gray-200 shadow-sm space-y-6">
+          <div id="allreport-pdf-container" class="bg-white p-3.5 sm:p-6 md:p-8 rounded-xl border border-gray-200 shadow-xs space-y-5 sm:space-y-6">
             <div class="border-b-2 border-custom-green pb-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div class="flex items-center gap-3">
-                <div class="w-12 h-12 bg-custom-green text-white rounded-xl flex items-center justify-center font-black text-xl shadow-md">JRC</div>
+                <img src="/logo.png" alt="Logo JRC Trans" class="w-12 h-12 object-contain rounded-xl shadow-md">
                 <div>
-                  <h1 class="text-2xl font-black text-custom-green tracking-tight leading-none">JRCTRANS MAJALENGKA</h1>
+                  <h1 class="text-2xl font-black text-custom-green tracking-tight leading-none" id="allreport-pdf-title">JRC TRANS MAJALENGKA</h1>
                   <p class="text-[11px] font-bold text-gray-700 mt-1 flex items-center gap-1">
-                    <i class="fa-solid fa-location-dot text-red-600"></i> Samping SPBU, Jl. Raya Cirebon - Bandung, Burujul Wetan, Kec. Jatiwangi, Kab. Majalengka, Jawa Barat 45454
+                    <i class="fa-solid fa-location-dot text-red-600"></i> Samping SPBU, Jl. Raya Cirebon - Bandung, Burujul Wetan, Kec. Jatiwangi, Kabupaten Majalengka, Jawa Barat 45454
                   </p>
-                  <p class="text-[10px] text-gray-500 font-medium">Laporan Keuangan & Rekapitulasi Operasional Seluruh Armada Rental</p>
+                  <p class="text-[10px] text-gray-500 font-medium" id="allreport-pdf-subtitle">Laporan Keuangan & Rekapitulasi Operasional Seluruh Armada Rental</p>
                 </div>
               </div>
               <div class="text-right text-xs text-gray-500 space-y-1 bg-gray-50 p-2.5 rounded-lg border border-gray-200">
                 <p>Periode: <span id="allreport-period-label" class="font-bold text-gray-800">Semua Waktu</span></p>
+                <p>Kategori: <span id="allreport-category-label" class="font-bold text-custom-green">Semua Unit</span></p>
                 <p>Tanggal Cetak: <span id="allreport-date-stamp" class="font-bold text-gray-800"></span></p>
               </div>
             </div>
 
             <!-- Tabel Rekapitulasi Semua Armada -->
-            <table class="w-full text-left border-collapse text-xs">
-              <thead>
-                <tr class="bg-gray-100 text-gray-700 font-bold border-y border-gray-300">
-                  <th class="p-2.5">Armada / Plat</th>
-                  <th class="p-2.5">Status Kepemilikan</th>
-                  <th class="p-2.5 text-center">Transaksi</th>
-                  <th class="p-2.5 text-right">Pendapatan</th>
-                  <th class="p-2.5 text-right">Biaya Ops</th>
-                  <th class="p-2.5 text-right">Laba Bersih</th>
-                  <th class="p-2.5 text-right">Porsi JRCTRANS</th>
-                  <th class="p-2.5 text-right">Porsi Investor</th>
-                </tr>
-              </thead>
-              <tbody id="tabel-all-report" class="divide-y divide-gray-200"></tbody>
-              <tfoot id="tfoot-all-report"></tfoot>
-            </table>
+            <div class="overflow-x-auto w-full touch-pan-x">
+              <table class="w-full text-left border-collapse text-xs min-w-[700px]">
+                <thead id="allreport-thead">
+                  <tr class="bg-gray-100 text-gray-700 font-bold border-y border-gray-300">
+                    <th class="p-2.5">Armada / Plat</th>
+                    <th class="p-2.5">Status Kepemilikan</th>
+                    <th class="p-2.5 text-center">Transaksi</th>
+                    <th class="p-2.5 text-right">Pendapatan</th>
+                    <th class="p-2.5 text-right">Biaya Ops</th>
+                    <th class="p-2.5 text-right">Laba Bersih</th>
+                    <th class="p-2.5 text-right">Porsi JRC Trans</th>
+                    <th class="p-2.5 text-right">Porsi Investor</th>
+                  </tr>
+                </thead>
+                <tbody id="tabel-all-report" class="divide-y divide-gray-200"></tbody>
+                <tfoot id="tfoot-all-report"></tfoot>
+              </table>
+            </div>
+
+            <!-- MASTER-DETAIL: RINCIAN TRANSAKSI HARIAN & FREKUENSI PER ARMADA -->
+            <div id="allreport-detail-container" class="space-y-4 pt-6 border-t border-gray-200">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <h3 class="text-sm md:text-base font-black text-gray-800 flex items-center gap-2">
+                    <i class="fa-solid fa-clipboard-list text-custom-green"></i> Rincian Riwayat Transaksi Harian & Frekuensi Per Unit Mobil
+                  </h3>
+                  <p class="text-[11px] text-gray-500">Menampilkan rincian tanggal sewa, penyewa, tarif, biaya operasional harian, dan pembagian porsi kas masing-masing mobil.</p>
+                </div>
+              </div>
+              <div id="allreport-detail-content" class="space-y-6">
+                <!-- Di-render dinamis oleh loadAllReport() -->
+              </div>
+            </div>
 
             <!-- Signature Footer All Report -->
             <div class="pt-8 border-t border-gray-200 flex justify-end text-center text-xs text-gray-700">
               <div class="w-64">
-                <p class="font-semibold text-gray-600">Manajemen JRCTRANS Majalengka,</p>
+                <p class="font-semibold text-gray-600">Manajemen JRC Trans Majalengka,</p>
                 <div class="h-16"></div>
                 <p class="font-bold border-b border-gray-400 inline-block px-8 pb-1">( Direktur / Pengelola )</p>
               </div>
@@ -516,1415 +671,292 @@
 
       </div>
     </main>
+
+    <!-- MOBILE FIXED BOTTOM NAVIGATION BAR -->
+    <nav id="mobile-bottom-nav" class="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-gray-200 px-1 py-1 flex items-center justify-around shadow-[0_-4px_16px_rgba(0,0,0,0.06)] safe-nav-pb">
+      <button onclick="switchTab('dashboard')" id="mob-nav-dashboard" class="flex flex-col items-center justify-center flex-1 py-1 text-custom-green transition active:scale-95">
+        <i class="fa-solid fa-chart-pie text-base mb-0.5 transition-transform"></i>
+        <span class="text-[10px] font-bold tracking-tight">Dashboard</span>
+      </button>
+      <button onclick="switchTab('armada')" id="mob-nav-armada" class="flex flex-col items-center justify-center flex-1 py-1 text-gray-400 hover:text-custom-green transition active:scale-95">
+        <i class="fa-solid fa-car-side text-base mb-0.5 transition-transform"></i>
+        <span class="text-[10px] font-bold tracking-tight">Armada</span>
+      </button>
+      <button onclick="switchTab('transaksi')" id="mob-nav-transaksi" class="flex flex-col items-center justify-center flex-1 py-1 text-gray-400 hover:text-custom-green transition active:scale-95">
+        <i class="fa-solid fa-file-invoice-dollar text-base mb-0.5 transition-transform"></i>
+        <span class="text-[10px] font-bold tracking-tight">Transaksi</span>
+      </button>
+      <button onclick="switchTab('report')" id="mob-nav-report" class="flex flex-col items-center justify-center flex-1 py-1 text-gray-400 hover:text-custom-green transition active:scale-95">
+        <i class="fa-solid fa-file-pdf text-base mb-0.5 transition-transform"></i>
+        <span class="text-[10px] font-bold tracking-tight">Investor</span>
+      </button>
+      <button onclick="switchTab('all-report')" id="mob-nav-all-report" class="flex flex-col items-center justify-center flex-1 py-1 text-amber-600 hover:text-amber-700 transition active:scale-95">
+        <i class="fa-solid fa-folder-tree text-base mb-0.5 transition-transform"></i>
+        <span class="text-[10px] font-bold tracking-tight">All Report</span>
+      </button>
+    </nav>
   </div>
 
   <!-- ================= MODAL TAMBAH MOBIL ================= -->
-  <div id="modal-armada" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-50">
-    <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-6 space-y-4">
-      <h3 class="text-lg font-black text-gray-800">Tambah Unit Armada Baru</h3>
+  <div id="modal-armada" class="fixed inset-0 bg-black/60 backdrop-blur-xs hidden items-end sm:items-center justify-center p-0 sm:p-4 z-50 transition-all">
+    <div class="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl max-w-md w-full p-4 sm:p-6 space-y-3 sm:space-y-4 max-h-[88vh] sm:max-h-[90vh] overflow-y-auto">
+      <h3 class="text-base sm:text-lg font-black text-gray-800">Tambah Unit Armada Baru</h3>
       <form id="form-tambah-armada" onsubmit="event.preventDefault(); simpanArmada(event); return false;" class="space-y-3">
         <div>
           <label class="block text-xs font-bold text-gray-600 mb-1">Nama Mobil</label>
-          <input type="text" id="add-nama-mobil" name="nama_mobil" required placeholder="Contoh: Toyota Camry" class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+          <input type="text" id="add-nama-mobil" name="nama_mobil" required placeholder="Contoh: Toyota Camry" class="w-full border rounded-lg px-3 py-2 text-xs min-h-[38px] focus:ring-2 focus:ring-green-600 focus:outline-none">
         </div>
         <div>
           <label class="block text-xs font-bold text-gray-600 mb-1">Plat Nomor</label>
-          <input type="text" id="add-plat-nomor" name="plat_nomor" required placeholder="Contoh: E 7789 BA" class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+          <input type="text" id="add-plat-nomor" name="plat_nomor" required placeholder="Contoh: E 7789 BA" class="w-full border rounded-lg px-3 py-2 text-xs min-h-[38px] focus:ring-2 focus:ring-green-600 focus:outline-none">
         </div>
         <div class="grid grid-cols-2 gap-2">
           <div>
             <label class="block text-xs font-bold text-gray-600 mb-1">Tahun</label>
-            <input type="number" id="add-tahun" name="tahun" required placeholder="2025" value="2025" class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+            <input type="number" id="add-tahun" name="tahun" required placeholder="2025" value="2025" class="w-full border rounded-lg px-3 py-2 text-xs min-h-[38px] focus:ring-2 focus:ring-green-600 focus:outline-none">
           </div>
           <div>
             <label class="block text-xs font-bold text-gray-600 mb-1">Kepemilikan</label>
-            <select id="add-kepemilikan" name="kepemilikan" class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+            <select id="add-kepemilikan" name="kepemilikan" class="w-full border rounded-lg px-3 py-2 text-xs min-h-[38px] focus:ring-2 focus:ring-green-600 focus:outline-none">
               <option value="Investor">Investor (Bagi Hasil 70:30)</option>
-              <option value="JRCTRANS">JRCTRANS (Milik Sendiri)</option>
+              <option value="JRC Trans">JRC Trans (Milik Sendiri)</option>
             </select>
           </div>
         </div>
-        <div class="flex justify-end gap-2 pt-2">
-          <button type="button" onclick="closeModalArmada()" class="px-4 py-2 border rounded-lg text-xs font-bold hover:bg-gray-50">Batal</button>
-          <button type="button" onclick="simpanArmada(event)" id="btn-simpan-mobil" class="px-4 py-2 bg-custom-green text-white rounded-lg text-xs font-bold hover:bg-custom-hover shadow-sm">Simpan Mobil</button>
+        <div class="flex justify-end gap-2 pt-2 sticky bottom-0 bg-white/95 backdrop-blur-xs py-2 border-t border-gray-100">
+          <button type="button" onclick="closeModalArmada()" class="px-4 py-2 border rounded-lg text-xs font-bold hover:bg-gray-50 active:scale-95 transition">Batal</button>
+          <button type="button" onclick="simpanArmada(event)" id="btn-simpan-mobil" class="px-4 py-2 bg-custom-green text-white rounded-lg text-xs font-bold hover:bg-custom-hover active:scale-95 transition shadow-sm">Simpan Mobil</button>
         </div>
       </form>
     </div>
   </div>
 
   <!-- ================= MODAL EDIT MOBIL ================= -->
-  <div id="modal-edit-armada" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-50">
-    <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-6 space-y-4">
-      <h3 class="text-lg font-black text-gray-800">Edit Unit Armada</h3>
+  <div id="modal-edit-armada" class="fixed inset-0 bg-black/60 backdrop-blur-xs hidden items-end sm:items-center justify-center p-0 sm:p-4 z-50 transition-all">
+    <div class="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl max-w-md w-full p-4 sm:p-6 space-y-3 sm:space-y-4 max-h-[88vh] sm:max-h-[90vh] overflow-y-auto">
+      <h3 class="text-base sm:text-lg font-black text-gray-800">Edit Unit Armada</h3>
       <form onsubmit="simpanEditArmada(event)" class="space-y-3">
         <input type="hidden" id="edit-armada-id">
         <div>
           <label class="block text-xs font-bold text-gray-600 mb-1">Nama Mobil</label>
-          <input type="text" id="edit-armada-nama" required class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+          <input type="text" id="edit-armada-nama" required class="w-full border rounded-lg px-3 py-2 text-xs min-h-[38px] focus:ring-2 focus:ring-green-600 focus:outline-none">
         </div>
         <div>
           <label class="block text-xs font-bold text-gray-600 mb-1">Plat Nomor</label>
-          <input type="text" id="edit-armada-plat" required class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+          <input type="text" id="edit-armada-plat" required class="w-full border rounded-lg px-3 py-2 text-xs min-h-[38px] focus:ring-2 focus:ring-green-600 focus:outline-none">
         </div>
         <div class="grid grid-cols-2 gap-2">
           <div>
             <label class="block text-xs font-bold text-gray-600 mb-1">Tahun</label>
-            <input type="number" id="edit-armada-tahun" required class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+            <input type="number" id="edit-armada-tahun" required class="w-full border rounded-lg px-3 py-2 text-xs min-h-[38px] focus:ring-2 focus:ring-green-600 focus:outline-none">
           </div>
           <div>
             <label class="block text-xs font-bold text-gray-600 mb-1">Kepemilikan</label>
-            <select id="edit-armada-kepemilikan" class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+            <select id="edit-armada-kepemilikan" class="w-full border rounded-lg px-3 py-2 text-xs min-h-[38px] focus:ring-2 focus:ring-green-600 focus:outline-none">
               <option value="Investor">Investor (Bagi Hasil 70:30)</option>
-              <option value="JRCTRANS">JRCTRANS (Milik Sendiri)</option>
+              <option value="JRC Trans">JRC Trans (Milik Sendiri)</option>
             </select>
           </div>
         </div>
-        <div class="flex justify-end gap-2 pt-2">
-          <button type="button" onclick="closeModalEditArmada()" class="px-4 py-2 border rounded-lg text-xs font-bold hover:bg-gray-50">Batal</button>
-          <button type="submit" class="px-4 py-2 bg-custom-green text-white rounded-lg text-xs font-bold hover:bg-custom-hover shadow-sm">Simpan Perubahan</button>
+        <div class="flex justify-end gap-2 pt-2 sticky bottom-0 bg-white/95 backdrop-blur-xs py-2 border-t border-gray-100">
+          <button type="button" onclick="closeModalEditArmada()" class="px-4 py-2 border rounded-lg text-xs font-bold hover:bg-gray-50 active:scale-95 transition">Batal</button>
+          <button type="submit" class="px-4 py-2 bg-custom-green text-white rounded-lg text-xs font-bold hover:bg-custom-hover active:scale-95 transition shadow-sm">Simpan Perubahan</button>
         </div>
       </form>
     </div>
   </div>
 
   <!-- ================= MODAL TAMBAH TRANSAKSI ================= -->
-  <div id="modal-transaksi" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-50">
-    <div class="bg-white rounded-xl shadow-xl max-w-lg w-full p-6 space-y-4">
-      <h3 class="text-lg font-black text-gray-800">Input Transaksi Baru</h3>
+  <div id="modal-transaksi" class="fixed inset-0 bg-black/60 backdrop-blur-xs hidden items-end sm:items-center justify-center p-0 sm:p-4 z-50 transition-all">
+    <div class="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl max-w-lg w-full p-4 sm:p-6 space-y-3 sm:space-y-4 max-h-[88vh] sm:max-h-[90vh] overflow-y-auto">
+      <h3 class="text-base sm:text-lg font-black text-gray-800">Input Transaksi Baru</h3>
       <form onsubmit="simpanTransaksi(event)" class="space-y-3">
         <div>
           <label class="block text-xs font-bold text-gray-600 mb-1">Pilih Armada</label>
-          <select id="trx-mobil-id" required class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none"></select>
+          <select id="trx-mobil-id" required class="w-full border rounded-lg px-3 py-2 text-xs min-h-[38px] focus:ring-2 focus:ring-green-600 focus:outline-none"></select>
         </div>
         <div class="grid grid-cols-2 gap-2">
           <div>
             <label class="block text-xs font-bold text-gray-600 mb-1">Tgl Mulai Sewa</label>
-            <input type="date" id="trx-tanggal" required onchange="onTrxTanggalMulaiChange()" class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+            <input type="date" id="trx-tanggal" required onchange="onTrxTanggalMulaiChange()" class="w-full border rounded-lg px-3 py-2 text-xs min-h-[38px] focus:ring-2 focus:ring-green-600 focus:outline-none">
           </div>
           <div>
             <label class="block text-xs font-bold text-gray-600 mb-1">Estimasi Tgl Selesai / Kembali</label>
-            <input type="date" id="trx-tgl-kembali" required class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+            <input type="date" id="trx-tgl-kembali" required class="w-full border rounded-lg px-3 py-2 text-xs min-h-[38px] focus:ring-2 focus:ring-green-600 focus:outline-none">
           </div>
         </div>
         <div>
           <label class="block text-xs font-bold text-gray-600 mb-1">Nama Penyewa</label>
-          <input type="text" id="trx-penyewa" placeholder="Nama Penyewa" class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+          <input type="text" id="trx-penyewa" placeholder="Nama Penyewa" class="w-full border rounded-lg px-3 py-2 text-xs min-h-[38px] focus:ring-2 focus:ring-green-600 focus:outline-none">
         </div>
         <div class="grid grid-cols-2 gap-2">
           <div>
             <label class="block text-xs font-bold text-gray-600 mb-1">Tarif Sewa (Rp)</label>
-            <input type="number" id="trx-tarif" placeholder="0" min="0" class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+            <input type="number" id="trx-tarif" placeholder="0" min="0" class="w-full border rounded-lg px-3 py-2 text-xs min-h-[38px] focus:ring-2 focus:ring-green-600 focus:outline-none">
           </div>
           <div>
             <label class="block text-xs font-bold text-gray-600 mb-1">Biaya BBM (Rp)</label>
-            <input type="number" id="trx-bbm" placeholder="0" min="0" class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+            <input type="number" id="trx-bbm" placeholder="0" min="0" class="w-full border rounded-lg px-3 py-2 text-xs min-h-[38px] focus:ring-2 focus:ring-green-600 focus:outline-none">
           </div>
         </div>
         <div class="grid grid-cols-2 gap-2">
           <div>
             <label class="block text-xs font-bold text-gray-600 mb-1">Biaya Servis (Rp)</label>
-            <input type="number" id="trx-servis" placeholder="0" min="0" class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+            <input type="number" id="trx-servis" placeholder="0" min="0" class="w-full border rounded-lg px-3 py-2 text-xs min-h-[38px] focus:ring-2 focus:ring-green-600 focus:outline-none">
           </div>
           <div>
             <label class="block text-xs font-bold text-gray-600 mb-1">Biaya Lainnya (Rp)</label>
-            <input type="number" id="trx-lainnya" placeholder="0" min="0" class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+            <input type="number" id="trx-lainnya" placeholder="0" min="0" class="w-full border rounded-lg px-3 py-2 text-xs min-h-[38px] focus:ring-2 focus:ring-green-600 focus:outline-none">
           </div>
         </div>
         <div>
           <label class="block text-xs font-bold text-gray-600 mb-1">Keterangan / Catatan</label>
-          <input type="text" id="trx-keterangan" placeholder="Catatan tambahan (tujuan, servis, dll)" class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+          <input type="text" id="trx-keterangan" placeholder="Catatan tambahan (tujuan, servis, dll)" class="w-full border rounded-lg px-3 py-2 text-xs min-h-[38px] focus:ring-2 focus:ring-green-600 focus:outline-none">
         </div>
-        <div class="flex justify-end gap-2 pt-2">
-          <button type="button" onclick="closeModalTransaksi()" class="px-4 py-2 border rounded-lg text-xs font-bold hover:bg-gray-50">Batal</button>
-          <button type="submit" class="px-4 py-2 bg-custom-green text-white rounded-lg text-xs font-bold hover:bg-custom-hover shadow-sm">Simpan Transaksi</button>
+        <div class="flex justify-end gap-2 pt-2 sticky bottom-0 bg-white/95 backdrop-blur-xs py-2 border-t border-gray-100">
+          <button type="button" onclick="closeModalTransaksi()" class="px-4 py-2 border rounded-lg text-xs font-bold hover:bg-gray-50 active:scale-95 transition">Batal</button>
+          <button type="submit" class="px-4 py-2 bg-custom-green text-white rounded-lg text-xs font-bold hover:bg-custom-hover active:scale-95 transition shadow-sm">Simpan Transaksi</button>
         </div>
       </form>
     </div>
   </div>
 
   <!-- ================= MODAL EDIT TRANSAKSI ================= -->
-  <div id="modal-edit-transaksi" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-50">
-    <div class="bg-white rounded-xl shadow-xl max-w-lg w-full p-6 space-y-4">
-      <h3 class="text-lg font-black text-gray-800">Edit Data Transaksi</h3>
+  <div id="modal-edit-transaksi" class="fixed inset-0 bg-black/60 backdrop-blur-xs hidden items-end sm:items-center justify-center p-0 sm:p-4 z-50 transition-all">
+    <div class="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl max-w-lg w-full p-4 sm:p-6 space-y-3 sm:space-y-4 max-h-[88vh] sm:max-h-[90vh] overflow-y-auto">
+      <h3 class="text-base sm:text-lg font-black text-gray-800">Edit Data Transaksi</h3>
       <form onsubmit="simpanEditTransaksi(event)" class="space-y-3">
         <input type="hidden" id="edit-trx-id">
         <div>
           <label class="block text-xs font-bold text-gray-600 mb-1">Pilih Armada</label>
-          <select id="edit-trx-mobil-id" required class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none"></select>
+          <select id="edit-trx-mobil-id" required class="w-full border rounded-lg px-3 py-2 text-xs min-h-[38px] focus:ring-2 focus:ring-green-600 focus:outline-none"></select>
         </div>
         <div class="grid grid-cols-2 gap-2">
           <div>
             <label class="block text-xs font-bold text-gray-600 mb-1">Tgl Mulai Sewa</label>
-            <input type="date" id="edit-trx-tanggal" required class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+            <input type="date" id="edit-trx-tanggal" required class="w-full border rounded-lg px-3 py-2 text-xs min-h-[38px] focus:ring-2 focus:ring-green-600 focus:outline-none">
           </div>
           <div>
             <label class="block text-xs font-bold text-gray-600 mb-1">Estimasi Tgl Selesai / Kembali</label>
-            <input type="date" id="edit-trx-tgl-kembali" required class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+            <input type="date" id="edit-trx-tgl-kembali" required class="w-full border rounded-lg px-3 py-2 text-xs min-h-[38px] focus:ring-2 focus:ring-green-600 focus:outline-none">
           </div>
         </div>
         <div>
           <label class="block text-xs font-bold text-gray-600 mb-1">Nama Penyewa</label>
-          <input type="text" id="edit-trx-penyewa" placeholder="Nama Penyewa" class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+          <input type="text" id="edit-trx-penyewa" placeholder="Nama Penyewa" class="w-full border rounded-lg px-3 py-2 text-xs min-h-[38px] focus:ring-2 focus:ring-green-600 focus:outline-none">
         </div>
         <div class="grid grid-cols-2 gap-2">
           <div>
             <label class="block text-xs font-bold text-gray-600 mb-1">Tarif Sewa (Rp)</label>
-            <input type="number" id="edit-trx-tarif" placeholder="0" min="0" class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+            <input type="number" id="edit-trx-tarif" placeholder="0" min="0" class="w-full border rounded-lg px-3 py-2 text-xs min-h-[38px] focus:ring-2 focus:ring-green-600 focus:outline-none">
           </div>
           <div>
             <label class="block text-xs font-bold text-gray-600 mb-1">Biaya BBM (Rp)</label>
-            <input type="number" id="edit-trx-bbm" placeholder="0" min="0" class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+            <input type="number" id="edit-trx-bbm" placeholder="0" min="0" class="w-full border rounded-lg px-3 py-2 text-xs min-h-[38px] focus:ring-2 focus:ring-green-600 focus:outline-none">
           </div>
         </div>
         <div class="grid grid-cols-2 gap-2">
           <div>
             <label class="block text-xs font-bold text-gray-600 mb-1">Biaya Servis (Rp)</label>
-            <input type="number" id="edit-trx-servis" placeholder="0" min="0" class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+            <input type="number" id="edit-trx-servis" placeholder="0" min="0" class="w-full border rounded-lg px-3 py-2 text-xs min-h-[38px] focus:ring-2 focus:ring-green-600 focus:outline-none">
           </div>
           <div>
             <label class="block text-xs font-bold text-gray-600 mb-1">Biaya Lainnya (Rp)</label>
-            <input type="number" id="edit-trx-lainnya" placeholder="0" min="0" class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+            <input type="number" id="edit-trx-lainnya" placeholder="0" min="0" class="w-full border rounded-lg px-3 py-2 text-xs min-h-[38px] focus:ring-2 focus:ring-green-600 focus:outline-none">
           </div>
         </div>
         <div>
           <label class="block text-xs font-bold text-gray-600 mb-1">Keterangan / Catatan</label>
-          <input type="text" id="edit-trx-keterangan" placeholder="Catatan tambahan" class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+          <input type="text" id="edit-trx-keterangan" placeholder="Catatan tambahan" class="w-full border rounded-lg px-3 py-2 text-xs min-h-[38px] focus:ring-2 focus:ring-green-600 focus:outline-none">
         </div>
-        <div class="flex justify-end gap-2 pt-2">
-          <button type="button" onclick="closeModalEditTransaksi()" class="px-4 py-2 border rounded-lg text-xs font-bold hover:bg-gray-50">Batal</button>
-          <button type="submit" class="px-4 py-2 bg-custom-green text-white rounded-lg text-xs font-bold hover:bg-custom-hover shadow-sm">Simpan Perubahan</button>
+        <div class="flex justify-end gap-2 pt-2 sticky bottom-0 bg-white/95 backdrop-blur-xs py-2 border-t border-gray-100">
+          <button type="button" onclick="closeModalEditTransaksi()" class="px-4 py-2 border rounded-lg text-xs font-bold hover:bg-gray-50 active:scale-95 transition">Batal</button>
+          <button type="submit" class="px-4 py-2 bg-custom-green text-white rounded-lg text-xs font-bold hover:bg-custom-hover active:scale-95 transition shadow-sm">Simpan Perubahan</button>
         </div>
       </form>
     </div>
   </div>
 
   <!-- ================= MODAL BUAT USER BARU ================= -->
-  <div id="modal-create-user" class="fixed inset-0 bg-black/50 hidden items-center justify-center p-4 z-50">
-    <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-6 space-y-4">
-      <h3 class="text-lg font-black text-gray-800 flex items-center gap-2">
+  <div id="modal-create-user" class="fixed inset-0 bg-black/60 backdrop-blur-xs hidden items-end sm:items-center justify-center p-0 sm:p-4 z-50 transition-all">
+    <div class="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl max-w-md w-full p-4 sm:p-6 space-y-3 sm:space-y-4 max-h-[88vh] sm:max-h-[90vh] overflow-y-auto">
+      <h3 class="text-base sm:text-lg font-black text-gray-800 flex items-center gap-2">
         <i class="fa-solid fa-user-plus text-custom-green"></i> Buat User Baru
       </h3>
       <form onsubmit="simpanUserBaru(event)" class="space-y-3">
         <div>
           <label class="block text-xs font-bold text-gray-600 mb-1">Username</label>
-          <input type="text" id="user-username" required placeholder="Contoh: investor_andi" class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+          <input type="text" id="user-username" required placeholder="Contoh: investor_andi" class="w-full border rounded-lg px-3 py-2 text-xs min-h-[38px] focus:ring-2 focus:ring-green-600 focus:outline-none">
         </div>
         <div>
           <label class="block text-xs font-bold text-gray-600 mb-1">Password</label>
-          <input type="password" id="user-password" required placeholder="Masukkan password" class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+          <input type="password" id="user-password" required placeholder="Masukkan password" class="w-full border rounded-lg px-3 py-2 text-xs min-h-[38px] focus:ring-2 focus:ring-green-600 focus:outline-none">
         </div>
         <div>
           <label class="block text-xs font-bold text-gray-600 mb-1">Role / Peran</label>
-          <select id="user-role" class="w-full border rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-green-600 focus:outline-none">
+          <select id="user-role" class="w-full border rounded-lg px-3 py-2 text-xs min-h-[38px] focus:ring-2 focus:ring-green-600 focus:outline-none">
             <option value="supir">Supir / Driver (Hanya Dashboard)</option>
             <option value="investor">Investor (Dashboard & Report Investor)</option>
             <option value="admin">Admin (Akses Penuh)</option>
           </select>
         </div>
-        <div class="flex justify-end gap-2 pt-2">
-          <button type="button" onclick="closeCreateUserModal()" class="px-4 py-2 border rounded-lg text-xs font-bold hover:bg-gray-50">Batal</button>
-          <button type="submit" class="px-4 py-2 bg-custom-green text-white rounded-lg text-xs font-bold hover:bg-custom-hover shadow-sm">Daftarkan User</button>
+        <div class="flex justify-end gap-2 pt-2 sticky bottom-0 bg-white/95 backdrop-blur-xs py-2 border-t border-gray-100">
+          <button type="button" onclick="closeCreateUserModal()" class="px-4 py-2 border rounded-lg text-xs font-bold hover:bg-gray-50 active:scale-95 transition">Batal</button>
+          <button type="submit" class="px-4 py-2 bg-custom-green text-white rounded-lg text-xs font-bold hover:bg-custom-hover active:scale-95 transition shadow-sm">Daftarkan User</button>
         </div>
       </form>
     </div>
   </div>
 
+  <!-- ================= MODAL RIWAYAT ARSIP BULANAN ================= -->
+  <div id="modal-riwayat-arsip" class="fixed inset-0 bg-black/60 backdrop-blur-xs hidden items-end sm:items-center justify-center p-0 sm:p-4 z-50 transition-all">
+    <div class="bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl max-w-2xl w-full p-4 sm:p-6 space-y-3 sm:space-y-4 max-h-[88vh] sm:max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between border-b pb-3 border-gray-100">
+        <div class="flex items-center gap-2">
+          <span class="w-8 h-8 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center text-sm font-bold">
+            <i class="fa-solid fa-box-archive"></i>
+          </span>
+          <div>
+            <h3 class="text-base sm:text-lg font-black text-gray-800">Daftar Riwayat Arsip Bulanan</h3>
+            <p class="text-xs text-gray-500">Rekapitulasi resmi tutup buku performa keuangan dan armada per periode.</p>
+          </div>
+        </div>
+        <button onclick="closeModalRiwayatArsip()" class="text-gray-400 hover:text-gray-600 text-base p-1">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="flex items-center justify-between gap-2 flex-wrap bg-gray-50 p-2.5 rounded-xl border border-gray-100">
+        <span class="text-xs text-gray-600 font-medium">Sistem melakukan arsip otomatis setiap pergantian bulan ke tanggal 1 jam 00:00.</span>
+        <button onclick="triggerManualTutupBuku()" id="btn-manual-tutup-buku" class="text-xs font-bold bg-custom-green text-white px-3 py-1.5 rounded-lg hover:bg-custom-hover active:scale-95 transition flex items-center gap-1.5 shadow-2xs">
+          <i class="fa-solid fa-bolt"></i> Tutup Buku Sekarang
+        </button>
+      </div>
+
+      <div class="overflow-x-auto touch-pan-x rounded-xl border border-gray-100">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead class="bg-gray-50 text-gray-700 font-bold border-b border-gray-200">
+            <tr>
+              <th class="p-2.5">Periode</th>
+              <th class="p-2.5 text-right">Omset</th>
+              <th class="p-2.5 text-right">Biaya Ops</th>
+              <th class="p-2.5 text-right">Laba Bersih</th>
+              <th class="p-2.5 text-center">Status</th>
+              <th class="p-2.5 text-center">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="table-riwayat-arsip-body" class="divide-y divide-gray-100">
+            <!-- Diisi dinamis -->
+          </tbody>
+        </table>
+      </div>
+
+      <div class="flex justify-end pt-2 border-t border-gray-100 sticky bottom-0 bg-white/95 py-2">
+        <button type="button" onclick="closeModalRiwayatArsip()" class="px-4 py-2 border rounded-lg text-xs font-bold hover:bg-gray-50 active:scale-95 transition">Tutup</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ================= SCRIPT LOGIK APLIKASI ================= -->
-  <script>
-    const BASE_URL = window.location.origin;
-    let lineChart, barChart, pieChart;
-    let cachedTransaksiList = [];
-
-    // Helper API Fetch
-    async function apiFetch(url, options = {}) {
-      const token = localStorage.getItem('token');
-      const headers = {
-        'Content-Type': 'application/json',
-        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-        ...options.headers
-      };
-
-      const res = await fetch(`${BASE_URL}${url}`, { ...options, headers });
-      if (res.status === 401 || res.status === 403) {
-        if (token && res.status === 401) logout();
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.error || 'Akses ditolak atau sesi telah berakhir');
-      }
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        throw new Error(data.error || `Gagal memproses permintaan (HTTP ${res.status})`);
-      }
-      return data;
-    }
-
-    // Format Rupiah
-    function formatRp(v) {
-      return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(v || 0);
-    }
-
-    // Auth Handlers
-    async function handleLogin(e) {
-      e.preventDefault();
-      const username = document.getElementById('login-username').value;
-      const password = document.getElementById('login-password').value;
-
-      try {
-        const res = await fetch(`${BASE_URL}/api/login`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, password })
-        });
-        const data = await res.json();
-
-        if (!res.ok) throw new Error(data.error || 'Gagal login');
-
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('role', data.role);
-        localStorage.setItem('username', data.username);
-
-        initApp();
-      } catch (err) {
-        alert(err.message);
-      }
-    }
-
-    function logout() {
-      localStorage.removeItem('token');
-      localStorage.removeItem('role');
-      localStorage.removeItem('username');
-      document.getElementById('auth-container').classList.remove('hidden');
-      document.getElementById('app-container').classList.add('hidden');
-      const profileMenu = document.getElementById('profile-menu');
-      if (profileMenu) profileMenu.classList.add('hidden');
-    }
-
-    // Profile Menu Toggle
-    function toggleProfileMenu() {
-      const menu = document.getElementById('profile-menu');
-      if (menu) menu.classList.toggle('hidden');
-    }
-
-    // Modal Create User Handlers
-    function openCreateUserModal() {
-      const menu = document.getElementById('profile-menu');
-      if (menu) menu.classList.add('hidden');
-      const modal = document.getElementById('modal-create-user');
-      if (modal) {
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-      }
-    }
-
-    function closeCreateUserModal() {
-      const modal = document.getElementById('modal-create-user');
-      if (modal) {
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-      }
-    }
-
-    async function simpanUserBaru(e) {
-      e.preventDefault();
-      const body = {
-        username: document.getElementById('user-username').value,
-        password: document.getElementById('user-password').value,
-        role: document.getElementById('user-role').value
-      };
-
-      try {
-        await apiFetch('/api/users', {
-          method: 'POST',
-          body: JSON.stringify(body)
-        });
-        closeCreateUserModal();
-        e.target.reset();
-        alert('User baru berhasil didaftarkan!');
-      } catch (err) {
-        alert(err.message);
-      }
-    }
-
-    function initApp() {
-      const token = localStorage.getItem('token');
-      if (!token) return;
-
-      const role = (localStorage.getItem('role') || 'admin').toLowerCase();
-      const username = localStorage.getItem('username') || 'User';
-
-      document.getElementById('auth-container').classList.add('hidden');
-      document.getElementById('app-container').classList.remove('hidden');
-
-      document.getElementById('user-display-name').innerText = username;
-      const roleBadge = document.getElementById('user-role-badge');
-      roleBadge.innerText = role.toUpperCase();
-
-      // Styling badge berdasarkan role
-      roleBadge.className = 'text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full text-white';
-      if (role === 'admin') {
-        roleBadge.classList.add('bg-custom-green');
-      } else if (role === 'investor') {
-        roleBadge.classList.add('bg-purple-600');
-      } else if (role === 'supir') {
-        roleBadge.classList.add('bg-blue-600');
-      }
-
-      // Atur Hak Akses Navigasi & Tombol Berdasarkan Role
-      const navDashboard = document.getElementById('nav-dashboard');
-      const navArmada = document.getElementById('nav-armada');
-      const navTransaksi = document.getElementById('nav-transaksi');
-      const navReport = document.getElementById('nav-report');
-      const navAllReport = document.getElementById('nav-all-report');
-      const btnTambahArmada = document.getElementById('btn-tambah-armada');
-      const btnTambahTransaksi = document.getElementById('btn-tambah-transaksi');
-      const menuCreateUser = document.getElementById('menu-create-user');
-
-      if (role === 'supir') {
-        // SUPIR: Hanya melihat Dashboard
-        if (navDashboard) navDashboard.classList.remove('hidden');
-        if (navArmada) navArmada.classList.add('hidden');
-        if (navTransaksi) navTransaksi.classList.add('hidden');
-        if (navReport) navReport.classList.add('hidden');
-        if (navAllReport) navAllReport.classList.add('hidden');
-        if (btnTambahArmada) btnTambahArmada.classList.add('hidden');
-        if (btnTambahTransaksi) btnTambahTransaksi.classList.add('hidden');
-        if (menuCreateUser) menuCreateUser.classList.add('hidden');
-        switchTab('dashboard');
-      } else if (role === 'investor') {
-        // INVESTOR: Hanya melihat Dashboard & Report Investor
-        if (navDashboard) navDashboard.classList.remove('hidden');
-        if (navArmada) navArmada.classList.add('hidden');
-        if (navTransaksi) navTransaksi.classList.add('hidden');
-        if (navReport) navReport.classList.remove('hidden');
-        if (navAllReport) navAllReport.classList.add('hidden');
-        if (btnTambahArmada) btnTambahArmada.classList.add('hidden');
-        if (btnTambahTransaksi) btnTambahTransaksi.classList.add('hidden');
-        if (menuCreateUser) menuCreateUser.classList.add('hidden');
-      } else {
-        // ADMIN: Akses Penuh ke Semua Menu & Fitur
-        if (navDashboard) navDashboard.classList.remove('hidden');
-        if (navArmada) navArmada.classList.remove('hidden');
-        if (navTransaksi) navTransaksi.classList.remove('hidden');
-        if (navReport) navReport.classList.remove('hidden');
-        if (navAllReport) navAllReport.classList.remove('hidden');
-        if (btnTambahArmada) btnTambahArmada.classList.remove('hidden');
-        if (btnTambahTransaksi) btnTambahTransaksi.classList.remove('hidden');
-        if (menuCreateUser) menuCreateUser.classList.remove('hidden');
-      }
-
-      populateReportMobilDropdown();
-      loadDashboard();
-      document.getElementById('report-date-stamp').innerText = new Date().toLocaleDateString('id-ID');
-      const stampAll = document.getElementById('allreport-date-stamp');
-      if (stampAll) stampAll.innerText = new Date().toLocaleDateString('id-ID');
-      
-      const tglInput = document.getElementById('trx-tanggal');
-      if (tglInput) tglInput.valueAsDate = new Date();
-      const tglKembali = document.getElementById('trx-tgl-kembali');
-      if (tglKembali) tglKembali.valueAsDate = new Date();
-    }
-
-    // Mobile Sidebar Toggle
-    function toggleMobileSidebar() {
-      const sidebar = document.getElementById('app-sidebar');
-      const backdrop = document.getElementById('sidebar-backdrop');
-      if (sidebar) sidebar.classList.toggle('-translate-x-full');
-      if (backdrop) backdrop.classList.toggle('hidden');
-    }
-
-    // Switch Tabs Nav
-    function switchTab(tab) {
-      // Auto close mobile drawer on tab click
-      if (window.innerWidth < 768) {
-        const sidebar = document.getElementById('app-sidebar');
-        const backdrop = document.getElementById('sidebar-backdrop');
-        if (sidebar && !sidebar.classList.contains('-translate-x-full')) {
-          sidebar.classList.add('-translate-x-full');
-          if (backdrop) backdrop.classList.add('hidden');
-        }
-      }
-
-      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-      document.getElementById(`tab-${tab}`).classList.remove('hidden');
-
-      document.querySelectorAll('nav button').forEach(b => {
-        b.classList.remove('bg-white/10', 'text-white');
-        if (b.id === 'nav-all-report') {
-          b.classList.add('text-amber-300');
-        } else {
-          b.classList.add('text-green-200');
-        }
-      });
-      document.getElementById(`nav-${tab}`).classList.add('bg-white/10', 'text-white');
-
-      if (tab === 'dashboard') loadDashboard();
-      if (tab === 'armada') loadArmada();
-      if (tab === 'transaksi') loadTransaksi();
-      if (tab === 'report') {
-        populateReportMobilDropdown();
-        loadReport();
-      }
-      if (tab === 'all-report') loadAllReport();
-    }
-
-    // Refresh Dashboard Handler with visual animation
-    async function refreshDashboardClick() {
-      const icon = document.getElementById('icon-refresh');
-      const statusBadge = document.getElementById('dashboard-refresh-status');
-      
-      if (icon) icon.classList.add('fa-spin');
-      await loadDashboard();
-      if (icon) icon.classList.remove('fa-spin');
-
-      if (statusBadge) {
-        statusBadge.classList.remove('hidden');
-        setTimeout(() => statusBadge.classList.add('hidden'), 2500);
-      }
-    }
-
-    // Modal Control Armada
-    function openModalArmada() {
-      document.getElementById('modal-armada').classList.remove('hidden');
-      document.getElementById('modal-armada').classList.add('flex');
-    }
-    function closeModalArmada() {
-      document.getElementById('modal-armada').classList.add('hidden');
-      document.getElementById('modal-armada').classList.remove('flex');
-    }
-
-    // Modal Control Transaksi Tambah
-    async function openModalTransaksi() {
-      try {
-        const listMobil = await apiFetch('/api/mobil');
-        const select = document.getElementById('trx-mobil-id');
-        select.innerHTML = '<option value="">-- Pilih Armada --</option>';
-        listMobil.forEach(m => {
-          const isInv = (m.kepemilikan === 'investor' || m.kepemilikan === 'Investor');
-          const tag = isInv ? '[INVESTOR]' : '[MILIK JRCTRANS]';
-          select.innerHTML += `<option value="${m.id}">${m.nama_mobil} (${m.plat_nomor}) - ${tag}</option>`;
-        });
-      } catch (e) {
-        console.error(e);
-      }
-      document.getElementById('modal-transaksi').classList.remove('hidden');
-      document.getElementById('modal-transaksi').classList.add('flex');
-    }
-    function closeModalTransaksi() {
-      document.getElementById('modal-transaksi').classList.add('hidden');
-      document.getElementById('modal-transaksi').classList.remove('flex');
-    }
-    function onTrxTanggalMulaiChange() {
-      const startVal = document.getElementById('trx-tanggal').value;
-      const returnInput = document.getElementById('trx-tgl-kembali');
-      if (returnInput && (!returnInput.value || returnInput.value < startVal)) {
-        returnInput.value = startVal;
-      }
-    }
-
-    // Modal Control Transaksi Edit
-    async function openEditTransaksi(id) {
-      const tx = cachedTransaksiList.find(t => t.id === id);
-      if (!tx) return;
-
-      try {
-        const listMobil = await apiFetch('/api/mobil');
-        const select = document.getElementById('edit-trx-mobil-id');
-        select.innerHTML = '<option value="">-- Pilih Armada --</option>';
-        listMobil.forEach(m => {
-          const isInv = (m.kepemilikan === 'investor' || m.kepemilikan === 'Investor');
-          const tag = isInv ? '[INVESTOR]' : '[MILIK JRCTRANS]';
-          select.innerHTML += `<option value="${m.id}" ${m.id === tx.mobil_id ? 'selected' : ''}>${m.nama_mobil} (${m.plat_nomor}) - ${tag}</option>`;
-        });
-      } catch (e) {
-        console.error(e);
-      }
-
-      document.getElementById('edit-trx-id').value = tx.id;
-      document.getElementById('edit-trx-tanggal').value = tx.tanggal || tx.tgl_mulai || '';
-      document.getElementById('edit-trx-tgl-kembali').value = tx.tgl_kembali || tx.tanggal || '';
-      document.getElementById('edit-trx-penyewa').value = tx.penyewa;
-      document.getElementById('edit-trx-tarif').value = tx.tarif || tx.tarif_sewa || 0;
-      document.getElementById('edit-trx-bbm').value = tx.biaya_bbm || 0;
-      document.getElementById('edit-trx-servis').value = tx.biaya_servis || 0;
-      document.getElementById('edit-trx-lainnya').value = tx.biaya_lainnya || 0;
-      document.getElementById('edit-trx-keterangan').value = tx.keterangan || '';
-
-      document.getElementById('modal-edit-transaksi').classList.remove('hidden');
-      document.getElementById('modal-edit-transaksi').classList.add('flex');
-    }
-
-    function closeModalEditTransaksi() {
-      document.getElementById('modal-edit-transaksi').classList.add('hidden');
-      document.getElementById('modal-edit-transaksi').classList.remove('flex');
-    }
-
-    // Dashboard Loader
-    async function loadDashboard() {
-      try {
-        const data = await apiFetch('/api/laporan/dashboard');
-        const listMobil = await apiFetch('/api/mobil');
-
-        document.getElementById('card-total-unit').innerText = `${data.summary.total_mobil} Unit`;
-
-        let totalPendapatan = 0;
-        let totalBiaya = 0;
-
-        data.detail_unit.forEach(d => {
-          totalPendapatan += (d.total_pendapatan || 0);
-          totalBiaya += (d.total_biaya || 0);
-        });
-
-        const keuntungan = totalPendapatan - totalBiaya;
-        document.getElementById('card-pendapatan').innerText = formatRp(totalPendapatan);
-        document.getElementById('card-biaya').innerText = formatRp(totalBiaya);
-        document.getElementById('card-keuntungan').innerText = formatRp(keuntungan);
-
-        renderStatusArmadaWidget(listMobil);
-        renderCharts(data.detail_unit, totalPendapatan, totalBiaya, data.trend_harian);
-      } catch (e) {
-        console.error('Error loading dashboard:', e);
-      }
-    }
-
-    // Render Widget Real-Time Status Armada
-    function renderStatusArmadaWidget(dataMobil) {
-      const container = document.getElementById('status-armada-container');
-      container.innerHTML = '';
-
-      if (!dataMobil || dataMobil.length === 0) {
-        container.innerHTML = `<p class="text-xs text-gray-400 col-span-4">Belum ada data armada.</p>`;
-        return;
-      }
-
-      dataMobil.forEach(m => {
-        let statusBg = 'bg-green-50 border-green-200 text-green-700';
-        let statusBadge = 'bg-green-500';
-        let icon = 'fa-circle-check';
-
-        const st = (m.status_sewa || '').toLowerCase();
-        if (st === 'sewa' || st === 'disewa') {
-          statusBg = 'bg-amber-50 border-amber-200 text-amber-700';
-          statusBadge = 'bg-amber-500';
-          icon = 'fa-car-side';
-        } else if (st === 'maintenance' || st === 'servis') {
-          statusBg = 'bg-red-50 border-red-200 text-red-700';
-          statusBadge = 'bg-red-500';
-          icon = 'fa-wrench';
-        }
-
-        container.innerHTML += `
-          <div class="p-3 rounded-lg border ${statusBg} flex items-center justify-between">
-            <div>
-              <p class="font-bold text-gray-800 text-xs">${m.nama_mobil}</p>
-              <p class="text-[10px] text-gray-500 font-mono">${m.plat_nomor}</p>
-              ${m.tgl_kembali && m.tgl_kembali !== '-' ? `<p class="text-[9px] mt-1 text-gray-600 font-semibold"><i class="fa-solid fa-flag-checkered mr-1"></i>Selesai: <b>${m.tgl_kembali}</b></p>` : ''}
-            </div>
-            <div class="text-right">
-              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold text-white ${statusBadge}">
-                <i class="fa-solid ${icon}"></i> ${m.status_sewa || 'Tersedia'}
-              </span>
-            </div>
-          </div>
-        `;
-      });
-    }
-
-    // Render Chart.js
-    function renderCharts(details, totPendapatan, totBiaya, trendHarian) {
-      const labelsBar = details.map(d => d.nama_mobil);
-      const dataPendapatanBar = details.map(d => d.total_pendapatan);
-
-      // Line Chart Real Harian
-      const lineLabels = (trendHarian && trendHarian.labels) || ['Hari Ini'];
-      const linePend = (trendHarian && trendHarian.pendapatan) || [totPendapatan];
-      const lineBiaya = (trendHarian && trendHarian.biaya) || [totBiaya];
-
-      if (lineChart) lineChart.destroy();
-      const ctxLine = document.getElementById('lineChartHarian');
-      if (ctxLine) {
-        lineChart = new Chart(ctxLine, {
-          type: 'line',
-          data: {
-            labels: lineLabels,
-            datasets: [
-              { label: 'Pendapatan', data: linePend, borderColor: '#0F4C25', backgroundColor: 'rgba(15,76,37,0.1)', tension: 0.3, fill: true },
-              { label: 'Biaya Ops', data: lineBiaya, borderColor: '#DC2626', backgroundColor: 'rgba(220,38,38,0.1)', tension: 0.3, fill: true }
-            ]
-          },
-          options: { responsive: true, maintainAspectRatio: false }
-        });
-      }
-
-      // Bar Chart Pendapatan per Unit
-      if (barChart) barChart.destroy();
-      const ctxBar = document.getElementById('barChart');
-      if (ctxBar) {
-        barChart = new Chart(ctxBar, {
-          type: 'bar',
-          data: {
-            labels: labelsBar,
-            datasets: [{ label: 'Omset per Mobil', data: dataPendapatanBar, backgroundColor: '#16A34A', borderRadius: 4 }]
-          },
-          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
-        });
-      }
-
-      // Doughnut Chart Bagi Hasil
-      const totalInv = details.filter(d => d.kepemilikan === 'Investor').reduce((s, d) => s + d.total_pendapatan, 0);
-      const totalSendiri = details.filter(d => d.kepemilikan === 'JRCTRANS').reduce((s, d) => s + d.total_pendapatan, 0);
-
-      if (pieChart) pieChart.destroy();
-      const ctxPie = document.getElementById('pieChart');
-      if (ctxPie) {
-        pieChart = new Chart(ctxPie, {
-          type: 'doughnut',
-          data: {
-            labels: ['Unit Investor', 'Unit JRCTRANS'],
-            datasets: [{ data: [totalInv, totalSendiri], backgroundColor: ['#8B5CF6', '#0F4C25'] }]
-          },
-          options: { responsive: true, maintainAspectRatio: false, cutout: '70%', plugins: { legend: { display: false } } }
-        });
-      }
-    }
-
-    // Load & Manage Armada
-    async function loadArmada() {
-      try {
-        const list = await apiFetch('/api/mobil');
-        const tbody = document.getElementById('tabel-armada');
-        const role = localStorage.getItem('role');
-        tbody.innerHTML = '';
-
-        if (!list || list.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="8" class="p-4 text-center text-gray-400">Belum ada data armada.</td></tr>`;
-          return;
-        }
-
-        list.forEach(m => {
-          const isInv = (m.kepemilikan === 'investor' || m.kepemilikan === 'Investor');
-          let badgeStatus = 'bg-green-100 text-green-700 border-green-300';
-          let statusLabel = m.status_sewa || 'Tersedia';
-
-          if (statusLabel === 'Sewa' || statusLabel === 'Disewa') {
-            badgeStatus = 'bg-amber-100 text-amber-700 border-amber-300';
-          } else if (statusLabel === 'Maintenance') {
-            badgeStatus = 'bg-red-100 text-red-700 border-red-300';
-          }
-
-          const actionHtml = role === 'admin' ? `
-            <button onclick="openEditMobil(${m.id})" class="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition"><i class="fa-solid fa-pen-to-square"></i></button>
-            <button onclick="deleteMobil(${m.id})" class="p-1.5 text-red-600 hover:bg-red-50 rounded transition"><i class="fa-solid fa-trash"></i></button>
-          ` : `<span class="text-xs text-gray-400 italic">Read-only</span>`;
-
-          const statusDropdownHtml = role === 'admin' ? `
-            <select onchange="updateStatusMobil(${m.id}, this.value)" class="text-xs border rounded px-2 py-1 font-bold ${badgeStatus} focus:outline-none">
-              <option value="Tersedia" ${statusLabel === 'Tersedia' ? 'selected' : ''}>🟢 Tersedia</option>
-              <option value="Sewa" ${statusLabel === 'Sewa' || statusLabel === 'Disewa' ? 'selected' : ''}>🟡 Disewa</option>
-              <option value="Maintenance" ${statusLabel === 'Maintenance' ? 'selected' : ''}>🔴 Maintenance</option>
-            </select>
-          ` : `
-            <span class="px-2 py-1 rounded text-xs font-bold ${badgeStatus}">
-              ${statusLabel}
-            </span>
-          `;
-          
-          const statusTextBadge = `
-            <span class="px-2 py-1 rounded text-xs font-bold ${badgeStatus}">
-              ${statusLabel}
-            </span>
-          `;
-
-          tbody.innerHTML += `
-            <tr class="hover:bg-gray-50 border-b border-gray-100">
-              <td class="p-3 font-bold text-gray-800">${m.nama_mobil}</td>
-              <td class="p-3 font-mono text-gray-600">${m.plat_nomor}</td>
-              <td class="p-3">${m.tahun}</td>
-              <td class="p-3">
-                <span class="px-2 py-0.5 rounded text-[10px] font-bold ${isInv ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}">
-                  ${isInv ? 'Investor' : 'JRCTRANS'}
-                </span>
-              </td>
-              <td class="p-3">${statusTextBadge}</td>
-              <td class="p-3 text-xs text-gray-600">${m.tgl_kembali || '-'}</td>
-              <td class="p-3 text-center">${statusDropdownHtml}</td>
-              <td class="p-3 text-center space-x-1">${actionHtml}</td>
-            </tr>
-          `;
-        });
-      } catch (e) {
-        console.error(e);
-      }
-    }
-
-    async function simpanArmada(e) {
-      if (e) {
-        try { e.preventDefault(); } catch(_) {}
-      }
-      const namaEl = document.getElementById('add-nama-mobil') || document.getElementById('armada-nama');
-      const platEl = document.getElementById('add-plat-nomor') || document.getElementById('armada-plat');
-      const tahunEl = document.getElementById('add-tahun') || document.getElementById('armada-tahun');
-      const kepEl = document.getElementById('add-kepemilikan') || document.getElementById('armada-kepemilikan');
-
-      const namaVal = namaEl ? (namaEl.value || '').trim() : '';
-      const platVal = platEl ? (platEl.value || '').trim() : '';
-      const tahunVal = tahunEl ? (parseInt(tahunEl.value) || 2025) : 2025;
-      const kepVal = kepEl ? (kepEl.value || 'Investor') : 'Investor';
-
-      if (!namaVal || !platVal) {
-        alert('Mohon lengkapi Nama Mobil dan Plat Nomor!');
-        return false;
-      }
-
-      const btn = document.getElementById('btn-simpan-mobil');
-      if (btn) {
-        btn.disabled = true;
-        btn.innerText = 'Menyimpan...';
-      }
-
-      const body = {
-        nama_mobil: namaVal,
-        plat_nomor: platVal,
-        tahun: tahunVal,
-        kepemilikan: kepVal
-      };
-
-      try {
-        const res = await apiFetch('/api/mobil', {
-          method: 'POST',
-          body: JSON.stringify(body)
-        });
-        closeModalArmada();
-        await loadArmada();
-        await loadDashboard();
-        populateReportMobilDropdown();
-        if (namaEl) namaEl.value = '';
-        if (platEl) platEl.value = '';
-        alert(res.message || 'Armada mobil berhasil ditambahkan!');
-      } catch (err) {
-        alert('Gagal menyimpan armada: ' + (err.message || err));
-      } finally {
-        if (btn) {
-          btn.disabled = false;
-          btn.innerText = 'Simpan Mobil';
-        }
-      }
-      return false;
-    }
-
-    async function openEditMobil(id) {
-      try {
-        const list = await apiFetch('/api/mobil');
-        const mobil = list.find(m => m.id === id);
-        if (!mobil) return;
-
-        document.getElementById('edit-armada-id').value = mobil.id;
-        document.getElementById('edit-armada-nama').value = mobil.nama_mobil;
-        document.getElementById('edit-armada-plat').value = mobil.plat_nomor;
-        document.getElementById('edit-armada-tahun').value = mobil.tahun;
-        document.getElementById('edit-armada-kepemilikan').value = (mobil.kepemilikan && mobil.kepemilikan.toLowerCase().includes('investor')) ? 'Investor' : 'JRCTRANS';
-
-        document.getElementById('modal-edit-armada').classList.remove('hidden');
-        document.getElementById('modal-edit-armada').classList.add('flex');
-      } catch (e) {
-        console.error(e);
-      }
-    }
-
-    function closeModalEditArmada() {
-      document.getElementById('modal-edit-armada').classList.add('hidden');
-      document.getElementById('modal-edit-armada').classList.remove('flex');
-    }
-
-    async function simpanEditArmada(e) {
-      e.preventDefault();
-      const id = document.getElementById('edit-armada-id').value;
-      const body = {
-        nama_mobil: document.getElementById('edit-armada-nama').value,
-        plat_nomor: document.getElementById('edit-armada-plat').value,
-        tahun: document.getElementById('edit-armada-tahun').value,
-        kepemilikan: document.getElementById('edit-armada-kepemilikan').value
-      };
-
-      try {
-        await apiFetch(`/api/mobil/${id}`, {
-          method: 'PUT',
-          body: JSON.stringify(body)
-        });
-        closeModalEditArmada();
-        loadArmada();
-        loadDashboard();
-        populateReportMobilDropdown();
-        alert('Data armada berhasil diperbarui!');
-      } catch (err) {
-        alert(err.message);
-      }
-    }
-
-    async function updateStatusMobil(id, status_sewa) {
-      let tgl_kembali = '-';
-      if (status_sewa === 'Sewa' || status_sewa === 'Disewa') {
-        const inputTgl = prompt('Masukkan estimasi tanggal kembali (YYYY-MM-DD) atau kosongkan:');
-        if (inputTgl) tgl_kembali = inputTgl;
-      }
-
-      try {
-        await apiFetch(`/api/mobil/${id}/status`, {
-          method: 'PUT',
-          body: JSON.stringify({ status_sewa, tgl_kembali })
-        });
-        loadArmada();
-        loadDashboard();
-      } catch (e) {
-        alert('Gagal mengubah status armada');
-      }
-    }
-
-    async function deleteMobil(id) {
-      if (!confirm('Yakin ingin menghapus armada ini?')) return;
-      try {
-        await apiFetch(`/api/mobil/${id}`, { method: 'DELETE' });
-        loadArmada();
-        loadDashboard();
-        alert('Armada berhasil dihapus!');
-      } catch (e) {
-        alert('Gagal menghapus armada');
-      }
-    }
-
-    // Load & Manage Transaksi
-    async function loadTransaksi() {
-      try {
-        const list = await apiFetch('/api/transaksi');
-        cachedTransaksiList = list || [];
-        const tbody = document.getElementById('tabel-transaksi');
-        const role = localStorage.getItem('role');
-        tbody.innerHTML = '';
-
-        if (!list || list.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-gray-400">Belum ada data transaksi.</td></tr>`;
-          return;
-        }
-
-        list.forEach(t => {
-          const tarifVal = Number(t.tarif_sewa || t.tarif || 0);
-          const totalOps = (Number(t.biaya_bbm) || 0) + (Number(t.biaya_servis) || 0) + (Number(t.biaya_lainnya) || 0);
-          const tglKembaliInfo = (t.tgl_kembali && t.tgl_kembali !== t.tanggal) ? `<br><span class="text-[10px] text-gray-500 font-semibold"><i class="fa-solid fa-arrow-right text-[8px] mr-1"></i>s/d ${t.tgl_kembali}</span>` : '';
-
-          tbody.innerHTML += `
-            <tr class="hover:bg-gray-50 border-b border-gray-100">
-              <td class="p-3 font-medium text-gray-700">${t.tanggal}${tglKembaliInfo}</td>
-              <td class="p-3">
-                <span class="font-bold text-gray-800">${t.nama_mobil || '-'}</span><br>
-                <span class="text-gray-500 font-mono text-[10px]">${t.plat_nomor || '-'}</span>
-              </td>
-              <td class="p-3 font-semibold text-gray-800">${t.penyewa || '-'}</td>
-              <td class="p-3 font-semibold text-green-700">${formatRp(tarifVal)}</td>
-              <td class="p-3 font-semibold text-red-600">${formatRp(totalOps)}</td>
-              <td class="p-3 text-xs text-gray-600">${t.keterangan || '-'}</td>
-              <td class="p-3 text-center space-x-1">
-                ${role === 'admin' ? `
-                  <button onclick="openEditTransaksi(${t.id})" class="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition"><i class="fa-solid fa-pen-to-square"></i></button>
-                  <button onclick="deleteTransaksi(${t.id})" class="p-1.5 text-red-600 hover:bg-red-50 rounded transition"><i class="fa-solid fa-trash"></i></button>
-                ` : `<span class="text-xs text-gray-400 italic">Read-only</span>`}
-              </td>
-            </tr>
-          `;
-        });
-      } catch (e) {
-        console.error(e);
-      }
-    }
-
-    async function simpanTransaksi(e) {
-      e.preventDefault();
-      const body = {
-        mobil_id: document.getElementById('trx-mobil-id').value,
-        tanggal: document.getElementById('trx-tanggal').value,
-        tgl_kembali: document.getElementById('trx-tgl-kembali').value || document.getElementById('trx-tanggal').value,
-        penyewa: document.getElementById('trx-penyewa').value,
-        tarif_sewa: Number(document.getElementById('trx-tarif').value) || 0,
-        biaya_bbm: Number(document.getElementById('trx-bbm').value) || 0,
-        biaya_servis: Number(document.getElementById('trx-servis').value) || 0,
-        biaya_lainnya: Number(document.getElementById('trx-lainnya').value) || 0,
-        keterangan: document.getElementById('trx-keterangan').value
-      };
-
-      try {
-        await apiFetch('/api/transaksi', {
-          method: 'POST',
-          body: JSON.stringify(body)
-        });
-        closeModalTransaksi();
-        loadTransaksi();
-        loadArmada();
-        loadDashboard();
-        loadReport();
-        loadAllReport();
-        e.target.reset();
-        document.getElementById('trx-tanggal').valueAsDate = new Date();
-        document.getElementById('trx-tgl-kembali').valueAsDate = new Date();
-        alert('Transaksi berhasil disimpan & status armada diperbarui secara otomatis!');
-      } catch (err) {
-        alert(err.message);
-      }
-    }
-
-    async function simpanEditTransaksi(e) {
-      e.preventDefault();
-      const id = document.getElementById('edit-trx-id').value;
-      const body = {
-        mobil_id: document.getElementById('edit-trx-mobil-id').value,
-        tanggal: document.getElementById('edit-trx-tanggal').value,
-        tgl_kembali: document.getElementById('edit-trx-tgl-kembali').value || document.getElementById('edit-trx-tanggal').value,
-        penyewa: document.getElementById('edit-trx-penyewa').value,
-        tarif_sewa: Number(document.getElementById('edit-trx-tarif').value) || 0,
-        biaya_bbm: Number(document.getElementById('edit-trx-bbm').value) || 0,
-        biaya_servis: Number(document.getElementById('edit-trx-servis').value) || 0,
-        biaya_lainnya: Number(document.getElementById('edit-trx-lainnya').value) || 0,
-        keterangan: document.getElementById('edit-trx-keterangan').value
-      };
-
-      try {
-        await apiFetch(`/api/transaksi/${id}`, {
-          method: 'PUT',
-          body: JSON.stringify(body)
-        });
-        closeModalEditTransaksi();
-        loadTransaksi();
-        loadArmada();
-        loadDashboard();
-        loadReport();
-        loadAllReport();
-        alert('Transaksi berhasil diperbarui!');
-      } catch (err) {
-        alert(err.message);
-      }
-    }
-
-    async function deleteTransaksi(id) {
-      if (!confirm('Yakin ingin menghapus transaksi ini?')) return;
-      try {
-        await apiFetch(`/api/transaksi/${id}`, { method: 'DELETE' });
-        loadTransaksi();
-        loadDashboard();
-        loadReport();
-        loadAllReport();
-        alert('Transaksi berhasil dihapus!');
-      } catch (e) {
-        alert('Gagal menghapus transaksi');
-      }
-    }
-
-    // ==========================================
-    // REPORT INVESTOR HANDLERS
-    // ==========================================
-    async function populateReportMobilDropdown() {
-      try {
-        const mobilList = await apiFetch('/api/mobil');
-        const select = document.getElementById('report-filter-mobil');
-        if (!select) return;
-        const currentVal = select.value;
-        const invMobil = (mobilList || []).filter(m => m.kepemilikan && m.kepemilikan.toLowerCase() === 'investor');
-        
-        select.innerHTML = '<option value="all">🚗 Semua Unit Investor</option>';
-        invMobil.forEach(m => {
-          select.innerHTML += `<option value="${m.id}">🚗 ${m.nama_mobil} (${m.plat_nomor})</option>`;
-        });
-        if (currentVal && Array.from(select.options).some(o => o.value === currentVal)) {
-          select.value = currentVal;
-        }
-      } catch (e) {
-        console.error('Error populating mobil dropdown:', e);
-      }
-    }
-
-    function onReportFilterChange() {
-      const type = document.getElementById('report-filter-type').value;
-      const customDiv = document.getElementById('custom-date-inputs');
-      if (type === 'custom') {
-        customDiv.classList.remove('hidden');
-      } else {
-        customDiv.classList.add('hidden');
-        loadReport();
-      }
-    }
-
-    async function loadReport() {
-      const filterType = document.getElementById('report-filter-type').value;
-      const mobilId = document.getElementById('report-filter-mobil')?.value || 'all';
-      let query = `?filter=${filterType}`;
-      if (mobilId && mobilId !== 'all') {
-        query += `&mobil_id=${mobilId}`;
-      }
-
-      let labelPeriod = 'Semua Waktu';
-      if (filterType === 'hari_ini') labelPeriod = 'Hari Ini';
-      if (filterType === '7_hari') labelPeriod = '7 Hari Terakhir';
-      if (filterType === 'bulan_ini') labelPeriod = 'Bulan Ini';
-      if (filterType === 'custom') {
-        const start = document.getElementById('report-start').value;
-        const end = document.getElementById('report-end').value;
-        if (!start || !end) return;
-        query += `&start=${start}&end=${end}`;
-        labelPeriod = `${start} s/d ${end}`;
-      }
-
-      document.getElementById('report-period-label').innerText = labelPeriod;
-
-      try {
-        const data = await apiFetch(`/api/laporan/investor${query}`);
-        const container = document.getElementById('report-investor-content');
-        container.innerHTML = '';
-
-        const list = Array.isArray(data) ? data : (data.detail_unit || []);
-        const summary = data.summary || {
-          total_pendapatan: 0,
-          total_biaya: 0,
-          total_bbm: 0,
-          total_servis: 0,
-          total_lainnya: 0,
-          total_porsi_pengelola: 0,
-          total_hak_investor: 0
-        };
-
-        if (!list || list.length === 0) {
-          container.innerHTML = `
-            <div class="p-12 text-center text-gray-400 font-medium bg-gray-50 rounded-xl border border-dashed border-gray-300">
-              <i class="fa-solid fa-inbox text-3xl mb-2 text-gray-300 block"></i>
-              Tidak ada transaksi armada investor yang tercatat untuk periode ini.
-            </div>
-          `;
-          return;
-        }
-
-        // 1. BANNER RINGKASAN GLOBAL INVESTOR
-        let html = `
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <div class="bg-emerald-50 border border-emerald-200 p-3.5 rounded-xl shadow-xs">
-              <p class="text-[10px] font-bold uppercase tracking-wider text-emerald-700">Total Omset Sewa</p>
-              <h3 class="text-base md:text-lg font-black text-emerald-900 mt-1">${formatRp(summary.total_pendapatan)}</h3>
-              <p class="text-[10px] text-emerald-600 mt-0.5">${list.length} Unit Armada Aktif</p>
-            </div>
-
-            <div class="bg-rose-50 border border-rose-200 p-3.5 rounded-xl shadow-xs">
-              <p class="text-[10px] font-bold uppercase tracking-wider text-rose-700">Total Biaya Operasional</p>
-              <h3 class="text-base md:text-lg font-black text-rose-900 mt-1">${formatRp(summary.total_biaya)}</h3>
-              <p class="text-[9px] text-rose-600 mt-0.5">BBM: ${formatRp(summary.total_bbm)} | Servis: ${formatRp(summary.total_servis)}</p>
-            </div>
-
-            <div class="bg-blue-50 border border-blue-200 p-3.5 rounded-xl shadow-xs">
-              <p class="text-[10px] font-bold uppercase tracking-wider text-blue-700">Hak Pengelola JRCTRANS</p>
-              <h3 class="text-base md:text-lg font-black text-blue-900 mt-1">${formatRp(summary.total_porsi_pengelola)}</h3>
-              <p class="text-[10px] text-blue-600 mt-0.5">30% Gross dari Total Sewa</p>
-            </div>
-
-            <div class="bg-purple-50 border-2 border-purple-300 p-3.5 rounded-xl shadow-xs">
-              <p class="text-[10px] font-black uppercase tracking-wider text-purple-800">Total Hak Bersih Investor</p>
-              <h3 class="text-base md:text-xl font-black text-purple-900 mt-1">${formatRp(summary.total_hak_investor)}</h3>
-              <p class="text-[10px] text-purple-700 font-bold mt-0.5">70% Gross - Biaya Operasional</p>
-            </div>
-          </div>
-        `;
-
-        // 2. RINCIAN PER UNIT MOBIL (MASTER-DETAIL)
-        list.forEach((d, unitIdx) => {
-          const totPend = Number(d.total_pendapatan) || 0;
-          const bbm = Number(d.biaya_bbm) || 0;
-          const servis = Number(d.biaya_servis) || 0;
-          const lainnya = Number(d.biaya_lainnya) || 0;
-          const totBiaya = Number(d.total_biaya) || (bbm + servis + lainnya);
-          
-          const porsiPengelola = Number(d.porsi_pengelola_30 !== undefined ? d.porsi_pengelola_30 : (totPend * 0.30));
-          const hakKotor70 = Number(d.hak_investor_kotor_70 !== undefined ? d.hak_investor_kotor_70 : (totPend * 0.70));
-          const hakBersihInv = Number(d.hak_investor_70 !== undefined ? d.hak_investor_70 : (hakKotor70 - totBiaya));
-
-          const txList = d.riwayat_transaksi || [];
-
-          html += `
-            <div class="border border-gray-200 rounded-xl overflow-hidden shadow-xs bg-white mt-4">
-              <!-- Header Unit Mobil -->
-              <div class="bg-gray-100/80 px-4 py-3 border-b border-gray-200 flex flex-wrap items-center justify-between gap-2">
-                <div class="flex items-center gap-2">
-                  <span class="w-7 h-7 rounded-lg bg-purple-700 text-white flex items-center justify-center font-black text-xs">${unitIdx + 1}</span>
-                  <div>
-                    <h3 class="font-black text-gray-800 text-sm md:text-base flex items-center gap-2">
-                      ${d.nama_mobil}
-                      <span class="text-xs font-mono font-bold bg-white text-gray-700 px-2 py-0.5 rounded border border-gray-300">${d.plat_nomor}</span>
-                    </h3>
-                    <p class="text-[10px] text-gray-500 font-medium">Tahun Pembuatan: ${d.tahun || '-'} | Status: <span class="font-bold text-purple-700">Mitra Investor</span></p>
-                  </div>
-                </div>
-                <div class="text-right">
-                  <span class="bg-purple-100 text-purple-800 text-xs font-bold px-2.5 py-1 rounded-full border border-purple-200">
-                    <i class="fa-solid fa-car-side mr-1"></i> ${txList.length}x Perjalanan Rental
-                  </span>
-                </div>
-              </div>
-
-              <!-- Tabel Rincian Transaksi Tanggal per Tanggal -->
-              <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse text-xs">
-                  <thead>
-                    <tr class="bg-gray-50 text-gray-600 font-bold border-b border-gray-200">
-                      <th class="p-2.5 text-center w-10">No</th>
-                      <th class="p-2.5 w-24">Tanggal</th>
-                      <th class="p-2.5 w-32">Penyewa</th>
-                      <th class="p-2.5 text-right w-28 text-emerald-800">Tarif Sewa</th>
-                      <th class="p-2.5 text-right w-24 text-red-700">BBM</th>
-                      <th class="p-2.5 text-right w-28 text-orange-700">Servis / Oli</th>
-                      <th class="p-2.5 text-right w-24 text-gray-700">Lainnya</th>
-                      <th class="p-2.5">Keterangan Operasional</th>
-                    </tr>
-                  </thead>
-                  <tbody class="divide-y divide-gray-100">
-          `;
-
-          if (txList.length === 0) {
-            html += `<tr><td colspan="8" class="p-4 text-center text-gray-400">Tidak ada rincian transaksi</td></tr>`;
-          } else {
-            txList.forEach((tx, txIdx) => {
-              const txTarif = Number(tx.tarif_sewa !== undefined ? tx.tarif_sewa : tx.tarif) || 0;
-              const txBbm = Number(tx.biaya_bbm) || 0;
-              const txServis = Number(tx.biaya_servis) || 0;
-              const txLain = Number(tx.biaya_lainnya) || 0;
-
-              html += `
-                <tr class="hover:bg-gray-50 transition">
-                  <td class="p-2.5 text-center font-bold text-gray-400">${txIdx + 1}</td>
-                  <td class="p-2.5 font-medium text-gray-700 whitespace-nowrap">${tx.tanggal || '-'}</td>
-                  <td class="p-2.5 font-bold text-gray-800">${tx.penyewa || '-'}</td>
-                  <td class="p-2.5 text-right font-bold text-emerald-700">${formatRp(txTarif)}</td>
-                  <td class="p-2.5 text-right font-semibold ${txBbm > 0 ? 'text-red-600' : 'text-gray-400'}">${formatRp(txBbm)}</td>
-                  <td class="p-2.5 text-right font-semibold ${txServis > 0 ? 'text-orange-600 font-bold' : 'text-gray-400'}">${formatRp(txServis)}</td>
-                  <td class="p-2.5 text-right font-semibold ${txLain > 0 ? 'text-gray-700' : 'text-gray-400'}">${formatRp(txLain)}</td>
-                  <td class="p-2.5 text-gray-600 italic text-[11px]">${tx.keterangan || '-'}</td>
-                </tr>
-              `;
-            });
-          }
-
-          html += `
-                  </tbody>
-                </table>
-              </div>
-
-              <!-- Subtotal Rekapitulasi Finansial Unit -->
-              <div class="bg-gray-50/90 p-4 border-t border-gray-200">
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-3 text-xs">
-                  <div class="bg-white p-2.5 rounded-lg border border-gray-200">
-                    <span class="text-gray-500 font-semibold block text-[10px] uppercase">Total Pendapatan Sewa</span>
-                    <span class="text-sm font-black text-emerald-700">${formatRp(totPend)}</span>
-                    <span class="text-[10px] text-gray-400 block">${txList.length}x Perjalanan</span>
-                  </div>
-
-                  <div class="bg-white p-2.5 rounded-lg border border-gray-200">
-                    <span class="text-gray-500 font-semibold block text-[10px] uppercase">Total Pengeluaran Ops</span>
-                    <span class="text-sm font-black text-rose-700">${formatRp(totBiaya)}</span>
-                    <span class="text-[9px] text-gray-500 block">BBM: ${formatRp(bbm)} | Servis: ${formatRp(servis)}</span>
-                  </div>
-
-                  <div class="bg-white p-2.5 rounded-lg border border-gray-200">
-                    <span class="text-gray-500 font-semibold block text-[10px] uppercase">Porsi JRCTRANS (30% Gross)</span>
-                    <span class="text-sm font-black text-blue-700">${formatRp(porsiPengelola)}</span>
-                    <span class="text-[10px] text-gray-400 block">Komisi Pengelolaan</span>
-                  </div>
-
-                  <div class="bg-purple-100/70 p-2.5 rounded-lg border border-purple-300">
-                    <span class="text-purple-900 font-black block text-[10px] uppercase">Hak Bersih Diterima Investor</span>
-                    <span class="text-base font-black text-purple-900">${formatRp(hakBersihInv)}</span>
-                    <span class="text-[10px] text-purple-700 font-semibold block">(${formatRp(hakKotor70)} - ${formatRp(totBiaya)})</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          `;
-        });
-
-        container.innerHTML = html;
-      } catch (e) {
-        console.error(e);
-      }
-    }
-
-    function downloadPDFReport() {
-      const element = document.getElementById('pdf-container');
-      const opt = {
-        margin:       0.5,
-        filename:     `Laporan_Investor_JRCTRANS_${new Date().toISOString().split('T')[0]}.pdf`,
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true },
-        jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' }
-      };
-      html2pdf().from(element).set(opt).save();
-    }
-
-    // ==========================================
-    // ALL REPORT (KHUSUS ADMIN) HANDLERS
-    // ==========================================
-    function onAllReportFilterChange() {
-      const type = document.getElementById('allreport-filter-type').value;
-      const customDiv = document.getElementById('allreport-custom-date-inputs');
-      if (type === 'custom') {
-        customDiv.classList.remove('hidden');
-      } else {
-        customDiv.classList.add('hidden');
-        loadAllReport();
-      }
-    }
-
-    async function loadAllReport() {
-      const role = localStorage.getItem('role');
-      if (role === 'investor') return;
-
-      const filterType = document.getElementById('allreport-filter-type').value;
-      let query = `?filter=${filterType}`;
-      let labelPeriod = 'Semua Waktu';
-
-      if (filterType === 'hari_ini') labelPeriod = 'Hari Ini';
-      if (filterType === '7_hari') labelPeriod = '7 Hari Terakhir';
-      if (filterType === 'bulan_ini') labelPeriod = 'Bulan Ini';
-      if (filterType === 'custom') {
-        const start = document.getElementById('allreport-start').value;
-        const end = document.getElementById('allreport-end').value;
-        if (!start || !end) return;
-        query += `&start=${start}&end=${end}`;
-        labelPeriod = `${start} s/d ${end}`;
-      }
-
-      document.getElementById('allreport-period-label').innerText = labelPeriod;
-
-      try {
-        const data = await apiFetch(`/api/laporan/keseluruhan${query}`);
-        const tbody = document.getElementById('tabel-all-report');
-        tbody.innerHTML = '';
-
-        document.getElementById('allreport-summary-pendapatan').innerText = formatRp(data.summary?.total_pendapatan || 0);
-        document.getElementById('allreport-summary-biaya').innerText = formatRp(data.summary?.total_biaya || 0);
-        document.getElementById('allreport-summary-laba').innerText = formatRp(data.summary?.total_laba_bersih || 0);
-        document.getElementById('allreport-summary-pengelola').innerText = formatRp(data.summary?.total_porsi_pengelola || 0);
-
-        const list = data.detail_unit || [];
-        const tfoot = document.getElementById('tfoot-all-report');
-
-        if (list.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center text-gray-400 font-medium"><i class="fa-solid fa-inbox text-2xl mb-2 block"></i> Tidak ada data transaksi armada pada periode ini.</td></tr>`;
-          if (tfoot) tfoot.innerHTML = '';
-          return;
-        }
-
-        list.forEach(d => {
-          tbody.innerHTML += `
-            <tr class="hover:bg-gray-50 border-b border-gray-100">
-              <td class="p-2.5 font-bold text-gray-800">${d.nama_mobil} <br><span class="text-[10px] text-gray-500 font-mono">${d.plat_nomor}</span></td>
-              <td class="p-2.5">
-                <span class="px-2 py-0.5 rounded text-[10px] font-bold ${d.is_investor ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'}">
-                  ${d.kepemilikan}
-                </span>
-              </td>
-              <td class="p-2.5 text-center font-bold text-gray-600">${d.total_transaksi}x</td>
-              <td class="p-2.5 text-right font-semibold text-green-700">${formatRp(d.total_pendapatan)}</td>
-              <td class="p-2.5 text-right font-semibold text-red-600">${formatRp(d.total_biaya)}</td>
-              <td class="p-2.5 text-right font-semibold text-indigo-700">${formatRp(d.laba_bersih)}</td>
-              <td class="p-2.5 text-right font-bold text-custom-green">${formatRp(d.porsi_pengelola)}</td>
-              <td class="p-2.5 text-right font-bold text-purple-700">${formatRp(d.porsi_investor)}</td>
-            </tr>
-          `;
-        });
-
-        // RENDER BARIS JUMLAH TOTAL (FOOTER)
-        if (tfoot) {
-          const summary = data.summary || {};
-          tfoot.innerHTML = `
-            <tr class="bg-gray-100/95 text-gray-900 border-t-2 border-gray-400 text-xs">
-              <td class="p-3 font-black text-gray-900">
-                JUMLAH TOTAL
-                <br><span class="text-[10px] text-gray-500 font-bold">${list.length} Unit Armada Aktif</span>
-              </td>
-              <td class="p-3 text-center text-gray-400 font-normal">—</td>
-              <td class="p-3 text-center font-black text-gray-800 text-sm">
-                ${summary.total_transaksi || 0}x
-                <br><span class="text-[9px] text-gray-500 font-normal">Perjalanan</span>
-              </td>
-              <td class="p-3 text-right font-black text-green-800 text-sm">
-                ${formatRp(summary.total_pendapatan || 0)}
-              </td>
-              <td class="p-3 text-right font-black text-red-700 text-sm">
-                ${formatRp(summary.total_biaya || 0)}
-                <br><span class="text-[9px] text-gray-500 font-normal">BBM: ${formatRp(summary.total_bbm || 0)} | Servis: ${formatRp(summary.total_servis || 0)}</span>
-              </td>
-              <td class="p-3 text-right font-black text-indigo-800 text-sm">
-                ${formatRp(summary.total_laba_bersih || 0)}
-              </td>
-              <td class="p-3 text-right font-black text-custom-green text-sm bg-green-50/70 border-x border-green-200">
-                ${formatRp(summary.total_porsi_pengelola || 0)}
-                <br><span class="text-[9px] text-custom-green font-normal">Kas Bersih JRCTRANS</span>
-              </td>
-              <td class="p-3 text-right font-black text-purple-900 text-sm bg-purple-50/70">
-                ${formatRp(summary.total_porsi_investor || 0)}
-                <br><span class="text-[9px] text-purple-700 font-normal">Hak Semua Investor</span>
-              </td>
-            </tr>
-          `;
-        }
-      } catch (e) {
-        console.error(e);
-      }
-    }
-
-    function downloadPDFAllReport() {
-      const element = document.getElementById('allreport-pdf-container');
-      const opt = {
-        margin:       0.5,
-        filename:     `Laporan_Keseluruhan_JRCTRANS_${new Date().toISOString().split('T')[0]}.pdf`,
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true },
-        jsPDF:        { unit: 'in', format: 'a4', orientation: 'landscape' }
-      };
-      html2pdf().from(element).set(opt).save();
-    }
-
-    // PWA Service Worker Registration
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
-          .then(reg => console.log('PWA ServiceWorker ready:', reg.scope))
-          .catch(err => console.error('PWA ServiceWorker registration failed:', err));
-      });
-    }
-
-    // PWA Install Prompt Listener (Android & Chrome Desktop)
-    let deferredPrompt;
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      const btnInstall = document.getElementById('btn-install-pwa');
-      if (btnInstall) {
-        btnInstall.classList.remove('hidden');
-        btnInstall.classList.add('flex');
-      }
-    });
-
-    async function installPWA() {
-      if (!deferredPrompt) return;
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      console.log('Install prompt result:', outcome);
-      deferredPrompt = null;
-      const btnInstall = document.getElementById('btn-install-pwa');
-      if (btnInstall) {
-        btnInstall.classList.add('hidden');
-        btnInstall.classList.remove('flex');
-      }
-    }
-
-    // Auto Init on Startup
-    window.onload = function() {
-      const token = localStorage.getItem('token');
-      if (token) {
-        initApp();
-      } else {
-        logout();
-      }
-    };
-  </script>
-</body>
+  <script src="/app.js"></script>
 </html>

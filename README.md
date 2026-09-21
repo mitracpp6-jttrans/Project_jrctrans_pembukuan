@@ -1,6 +1,6 @@
-# JRCTRANS Majalengka - Sistem Pembukuan & Manajemen Rental Mobil
+# JRC Trans Majalengka - Sistem Pembukuan & Manajemen Rental Mobil
 
-Aplikasi pembukuan rental mobil, pengelolaan armada, dan pembagian hasil laba bersih 70% Investor : 30% Pengelola JRCTRANS secara real-time.
+Aplikasi pembukuan rental mobil, pengelolaan armada, dan pembagian hasil laba bersih 70% Investor : 30% Pengelola JRC Trans secara real-time.
 
 ---
 

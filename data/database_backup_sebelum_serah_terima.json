@@ -1,0 +1,396 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "username": "admin",
+      "password": "admin123",
+      "role": "admin"
+    },
+    {
+      "id": 2,
+      "username": "investor",
+      "password": "investor123",
+      "role": "investor"
+    },
+    {
+      "id": 3,
+      "username": "supir",
+      "password": "supir123",
+      "role": "supir"
+    }
+  ],
+  "dataMobil": [
+    {
+      "id": 1,
+      "nama_mobil": "Innova Reborn",
+      "plat_nomor": "E 1995 VLS",
+      "tahun": 2022,
+      "kepemilikan": "investor",
+      "status_sewa": "Tersedia",
+      "tgl_kembali": "-"
+    },
+    {
+      "id": 2,
+      "nama_mobil": "Fortuner VRZ",
+      "plat_nomor": "E 8888 JRC",
+      "tahun": 2023,
+      "kepemilikan": "investor",
+      "status_sewa": "Tersedia",
+      "tgl_kembali": "-"
+    },
+    {
+      "id": 3,
+      "nama_mobil": "Avanza Veloz",
+      "plat_nomor": "E 1234 AB",
+      "tahun": 2022,
+      "kepemilikan": "investor",
+      "status_sewa": "Tersedia",
+      "tgl_kembali": "-"
+    },
+    {
+      "id": 4,
+      "nama_mobil": "Xpander Ultimate",
+      "plat_nomor": "E 4567 CD",
+      "tahun": 2023,
+      "kepemilikan": "investor",
+      "status_sewa": "Tersedia",
+      "tgl_kembali": "-"
+    },
+    {
+      "id": 5,
+      "nama_mobil": "Innova Zenix Hybrid",
+      "plat_nomor": "E 7890 EF",
+      "tahun": 2024,
+      "kepemilikan": "investor",
+      "status_sewa": "Tersedia",
+      "tgl_kembali": "-"
+    },
+    {
+      "id": 6,
+      "nama_mobil": "Pajero Sport Dakar",
+      "plat_nomor": "E 2345 GH",
+      "tahun": 2023,
+      "kepemilikan": "investor",
+      "status_sewa": "Tersedia",
+      "tgl_kembali": "-"
+    },
+    {
+      "id": 7,
+      "nama_mobil": "Toyota Hiace Commuter",
+      "plat_nomor": "E 6789 IJ",
+      "tahun": 2021,
+      "kepemilikan": "investor",
+      "status_sewa": "Tersedia",
+      "tgl_kembali": "-"
+    },
+    {
+      "id": 8,
+      "nama_mobil": "Toyota Alphard Gen 3",
+      "plat_nomor": "E 1111 KL",
+      "tahun": 2020,
+      "kepemilikan": "investor",
+      "status_sewa": "Tersedia",
+      "tgl_kembali": "-"
+    },
+    {
+      "id": 9,
+      "nama_mobil": "Honda HR-V RS",
+      "plat_nomor": "E 3333 MN",
+      "tahun": 2023,
+      "kepemilikan": "investor",
+      "status_sewa": "Tersedia",
+      "tgl_kembali": "-"
+    },
+    {
+      "id": 10,
+      "nama_mobil": "Toyota Calya",
+      "plat_nomor": "E 5555 OP",
+      "tahun": 2022,
+      "kepemilikan": "investor",
+      "status_sewa": "Tersedia",
+      "tgl_kembali": "-"
+    },
+    {
+      "id": 11,
+      "nama_mobil": "Toyota Avanza G",
+      "plat_nomor": "E 1001 JRC",
+      "tahun": 2022,
+      "kepemilikan": "sendiri",
+      "status_sewa": "Tersedia",
+      "tgl_kembali": "-"
+    },
+    {
+      "id": 12,
+      "nama_mobil": "Toyota Hiace Premio",
+      "plat_nomor": "E 1002 JRC",
+      "tahun": 2023,
+      "kepemilikan": "sendiri",
+      "status_sewa": "Tersedia",
+      "tgl_kembali": "-"
+    }
+  ],
+  "dataTransaksi": [
+    {
+      "id": 1,
+      "mobil_id": 1,
+      "tanggal": "2026-08-10",
+      "penyewa": "Budi Santoso",
+      "tarif": 400000,
+      "tarif_sewa": 400000,
+      "biaya_bbm": 50000,
+      "biaya_servis": 0,
+      "biaya_lainnya": 0,
+      "keterangan": "Drop Bandara Kertajati"
+    },
+    {
+      "id": 2,
+      "mobil_id": 1,
+      "tanggal": "2026-08-12",
+      "penyewa": "PT Surya Majalengka",
+      "tarif": 600000,
+      "tarif_sewa": 600000,
+      "biaya_bbm": 100000,
+      "biaya_servis": 0,
+      "biaya_lainnya": 20000,
+      "keterangan": "Sewa Dinas Kantor (Tol)"
+    },
+    {
+      "id": 3,
+      "mobil_id": 1,
+      "tanggal": "2026-08-15",
+      "penyewa": "Hendra Wijaya",
+      "tarif": 500000,
+      "tarif_sewa": 500000,
+      "biaya_bbm": 50000,
+      "biaya_servis": 300000,
+      "biaya_lainnya": 0,
+      "keterangan": "Wisata Cirebon (Ganti Oli & Filter)"
+    },
+    {
+      "id": 4,
+      "mobil_id": 2,
+      "tanggal": "2026-08-11",
+      "penyewa": "H. Ridwan",
+      "tarif": 1200000,
+      "tarif_sewa": 1200000,
+      "biaya_bbm": 150000,
+      "biaya_servis": 0,
+      "biaya_lainnya": 50000,
+      "keterangan": "Sewa VIP Majalengka"
+    },
+    {
+      "id": 5,
+      "mobil_id": 2,
+      "tanggal": "2026-08-14",
+      "penyewa": "Keluarga dr. Anton",
+      "tarif": 1200000,
+      "tarif_sewa": 1200000,
+      "biaya_bbm": 150000,
+      "biaya_servis": 0,
+      "biaya_lainnya": 0,
+      "keterangan": "Drop VIP Jakarta"
+    },
+    {
+      "id": 6,
+      "mobil_id": 3,
+      "tanggal": "2026-08-10",
+      "penyewa": "Ahmad Fauzi",
+      "tarif": 350000,
+      "tarif_sewa": 350000,
+      "biaya_bbm": 50000,
+      "biaya_servis": 0,
+      "biaya_lainnya": 0,
+      "keterangan": "Sewa Harian Dalam Kota"
+    },
+    {
+      "id": 7,
+      "mobil_id": 3,
+      "tanggal": "2026-08-13",
+      "penyewa": "Ibu Ratna",
+      "tarif": 350000,
+      "tarif_sewa": 350000,
+      "biaya_bbm": 0,
+      "biaya_servis": 0,
+      "biaya_lainnya": 0,
+      "keterangan": "Sewa Lepas Kunci (BBM Sendiri)"
+    },
+    {
+      "id": 8,
+      "mobil_id": 4,
+      "tanggal": "2026-08-12",
+      "penyewa": "Danang Kusuma",
+      "tarif": 450000,
+      "tarif_sewa": 450000,
+      "biaya_bbm": 50000,
+      "biaya_servis": 0,
+      "biaya_lainnya": 0,
+      "keterangan": "Kunjungan Keluarga Kuningan"
+    },
+    {
+      "id": 9,
+      "mobil_id": 4,
+      "tanggal": "2026-08-16",
+      "penyewa": "Bpk. Trisno",
+      "tarif": 450000,
+      "tarif_sewa": 450000,
+      "biaya_bbm": 50000,
+      "biaya_servis": 150000,
+      "biaya_lainnya": 0,
+      "keterangan": "Sewa 1 Hari + Servis Rem"
+    },
+    {
+      "id": 10,
+      "mobil_id": 5,
+      "tanggal": "2026-08-11",
+      "penyewa": "PT Telkom Majalengka",
+      "tarif": 800000,
+      "tarif_sewa": 800000,
+      "biaya_bbm": 100000,
+      "biaya_servis": 0,
+      "biaya_lainnya": 0,
+      "keterangan": "Operasional Direksi"
+    },
+    {
+      "id": 11,
+      "mobil_id": 5,
+      "tanggal": "2026-08-15",
+      "penyewa": "Ibu Jessica",
+      "tarif": 800000,
+      "tarif_sewa": 800000,
+      "biaya_bbm": 100000,
+      "biaya_servis": 0,
+      "biaya_lainnya": 30000,
+      "keterangan": "Perjalanan Bisnis Bandung (Tol)"
+    },
+    {
+      "id": 12,
+      "mobil_id": 6,
+      "tanggal": "2026-08-13",
+      "penyewa": "Bpk. Bambang",
+      "tarif": 1300000,
+      "tarif_sewa": 1300000,
+      "biaya_bbm": 200000,
+      "biaya_servis": 0,
+      "biaya_lainnya": 50000,
+      "keterangan": "Proyek Wisata Majalengka"
+    },
+    {
+      "id": 13,
+      "mobil_id": 7,
+      "tanggal": "2026-08-10",
+      "penyewa": "Rombongan Guru SMP",
+      "tarif": 1100000,
+      "tarif_sewa": 1100000,
+      "biaya_bbm": 200000,
+      "biaya_servis": 0,
+      "biaya_lainnya": 50000,
+      "keterangan": "Wisata Guru ke Ciwidey"
+    },
+    {
+      "id": 14,
+      "mobil_id": 7,
+      "tanggal": "2026-08-14",
+      "penyewa": "Keluarga Bpk. Herman",
+      "tarif": 1100000,
+      "tarif_sewa": 1100000,
+      "biaya_bbm": 200000,
+      "biaya_servis": 400000,
+      "biaya_lainnya": 0,
+      "keterangan": "Antar Pengantin + Ganti Ban Depan"
+    },
+    {
+      "id": 15,
+      "mobil_id": 8,
+      "tanggal": "2026-08-12",
+      "penyewa": "Wedding Organizer Cirebon",
+      "tarif": 2500000,
+      "tarif_sewa": 2500000,
+      "biaya_bbm": 300000,
+      "biaya_servis": 0,
+      "biaya_lainnya": 100000,
+      "keterangan": "Mobil Pengantin VIP + Dekorasi Tol"
+    },
+    {
+      "id": 16,
+      "mobil_id": 9,
+      "tanggal": "2026-08-15",
+      "penyewa": "Sdr. Kevin",
+      "tarif": 600000,
+      "tarif_sewa": 600000,
+      "biaya_bbm": 50000,
+      "biaya_servis": 0,
+      "biaya_lainnya": 0,
+      "keterangan": "Weekend Trip Kuningan"
+    },
+    {
+      "id": 17,
+      "mobil_id": 11,
+      "tanggal": "2026-08-11",
+      "penyewa": "Bpk. Rahmat",
+      "tarif": 350000,
+      "tarif_sewa": 350000,
+      "biaya_bbm": 50000,
+      "biaya_servis": 0,
+      "biaya_lainnya": 0,
+      "keterangan": "Sewa Harian Cirebon"
+    },
+    {
+      "id": 18,
+      "mobil_id": 11,
+      "tanggal": "2026-08-14",
+      "penyewa": "Ibu Dewi",
+      "tarif": 350000,
+      "tarif_sewa": 350000,
+      "biaya_bbm": 50000,
+      "biaya_servis": 100000,
+      "biaya_lainnya": 0,
+      "keterangan": "Sewa Harian + Ganti Bohlam Lampu"
+    },
+    {
+      "id": 19,
+      "mobil_id": 12,
+      "tanggal": "2026-08-12",
+      "penyewa": "Dinas Pariwisata",
+      "tarif": 1400000,
+      "tarif_sewa": 1400000,
+      "biaya_bbm": 200000,
+      "biaya_servis": 0,
+      "biaya_lainnya": 50000,
+      "keterangan": "Studi Banding Pemda (Tol)"
+    },
+    {
+      "id": 20,
+      "mobil_id": 12,
+      "tanggal": "2026-08-16",
+      "penyewa": "PT Indofood",
+      "tarif": 1400000,
+      "tarif_sewa": 1400000,
+      "biaya_bbm": 200000,
+      "biaya_servis": 0,
+      "biaya_lainnya": 0,
+      "keterangan": "Antar Jemput Tamu Pabrik"
+    }
+  ],
+  "riwayatBulanan": [
+    {
+      "id": 1,
+      "periode": "2026-08",
+      "nama_bulan": "Agustus",
+      "tahun": 2026,
+      "total_transaksi": 20,
+      "total_pendapatan": 17700000,
+      "total_biaya": 3650000,
+      "total_keuntungan_bersih": 14050000,
+      "total_porsi_pengelola": 7110000,
+      "total_porsi_investor": 6940000,
+      "rincian_biaya": {
+        "bbm": 2350000,
+        "servis": 950000,
+        "lainnya": 350000
+      },
+      "status": "closed",
+      "closed_at": "2026-09-16T13:46:23.609Z",
+      "closed_by": "SYSTEM_AUTO"
+    }
+  ]
+}

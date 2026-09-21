@@ -1,7 +1,7 @@
 @echo off
-title JRCTRANS Majalengka - Server Pembukuan
+title JRC Trans Majalengka - Server Pembukuan
 echo ========================================================
-echo       MEMULAI SISTEM JRCTRANS MAJALENGKA
+echo       MEMULAI SISTEM JRC TRANS MAJALENGKA
 echo ========================================================
 echo.
 
